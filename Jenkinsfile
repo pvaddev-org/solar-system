@@ -44,7 +44,7 @@ pipeline {
         stage('Unit Testing') {
             steps {
                 withCredentials([string(credentialsId: 'mongo-uri', variable: 'MONGO_URI')]) {
-                    sh 'npm test'
+                    sh 'DEBUG=mocha:* npm test'
                 }
 
                 junit allowEmptyResults: true, keepProperties: true, testResults: 'test-results.xml'
