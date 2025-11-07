@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '/'))); 
 app.use(cors())
 
-mongoose.connect(process.env.MONGO_URIMONGO_URI)
+mongoose.connect(process.env.MONGO_URI)
 .then(() => {
     console.log("MongoDB Connection Successful");
 })
