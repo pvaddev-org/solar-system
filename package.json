@@ -1,0 +1,36 @@
+{
+  "name": "Solar-System",
+  "version": "6.7.6",
+  "author": "Vadim Petrov",
+  "homepage": "",
+  "license": "MIT",
+  "scripts": {
+    "start": "node app.js",
+    "build": "echo \"Backend build successful. No code compilation required.\"",
+    "test": "mocha --require @babel/register app-test.js --timeout 10000 --reporter mocha-junit-reporter --exit",
+    "coverage": "nyc --reporter cobertura --reporter lcov --reporter text --reporter json-summary  mocha --require @babel/register app-test.js --timeout 10000 --exit"
+  },
+  "nyc": {
+    "check-coverage": true,
+    "lines": 90
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "mongoose": "^8.19.3",
+    "express": "^4.18.2",
+    "nyc": "^15.1.0",
+    "serverless-http": "^3.2.0"
+  },
+  "devDependencies": {
+    "mocha-junit-reporter": "^2.2.1",
+    "@babel/cli": "^7.28.3",
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/register": "^7.28.3",
+    "@types/body-parser": "^1.19.6",
+    "chai": "*",
+    "chai-http": "*",
+    "cross-env": "^10.1.0",
+    "mocha": "*"
+  }
+}
