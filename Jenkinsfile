@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        MONGO_URI = "mongodb+srv://superuser:SuperPassword@supercluster.d83jj.mon godb.net/superData"
+        MONGO_URI = "mongodb+srv://superuser:SuperPassword@supercluster.d83jj.mongodb.net/superData"
     }
 
 

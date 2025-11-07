@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node app.js",
     "build": "echo \"Backend build successful. No code compilation required.\"",
-    "test": "mocha --require @babel/register app-test.js --timeout 10000 --reporter mocha-junit-reporter --exit",
+    "test": "mocha --require @babel/register app-test.js --timeout 10000 --reporter mocha-junit-reporter --reporter-options mochaFile=reports/junit/test-results.xml --exit",
     "coverage": "nyc --reporter cobertura --reporter lcov --reporter text --reporter json-summary  mocha --require @babel/register app-test.js --timeout 10000 --exit"
   },
   "nyc": {
