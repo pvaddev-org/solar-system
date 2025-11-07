@@ -2,13 +2,10 @@ pipeline {
     agent any
 
     stages {
-        stage('VM Node Version') {
+        stage('Installing Dependancies') {
             steps {
-                sh '''
-                    node -v
-                    npm -v
-                '''
+                sh 'npm install --no-audit'
             }
         }
     }
-} // testing webhook
+}
