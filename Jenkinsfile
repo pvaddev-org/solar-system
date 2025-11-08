@@ -45,8 +45,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'mongo-uri', variable: 'MONGO_URI')]) {
                     sh '''
-                        mkdir -p reports/junit
-                        DEBUG=mocha-junit-reporter npm test
+                        npm test
                        '''
                 }
 
