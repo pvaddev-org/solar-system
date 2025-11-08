@@ -121,6 +121,8 @@ app.get('/ready', function(req, res) {
 
 module.exports = app;
 
-app.listen(PORT, () => { 
+if (require.main === module) {
+  app.listen(PORT, () => { 
     console.log(`Server successfully running on port - ${PORT}`); 
-});
+  });
+}
