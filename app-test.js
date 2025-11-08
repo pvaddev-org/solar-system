@@ -8,26 +8,29 @@ let chaiHttp = require("chai-http");
 chai.should();
 chai.use(chaiHttp); 
 
-// --- Mocha Hooks for Database Management ---
-before(function(done) {
-    // Wait for the Mongoose connection promise to resolve.
-    // Since we fixed app.js to use Promises, we can use mongoose.connection.once()
-    // which waits until the connection status changes to 'open'.
-    mongoose.connection.once('open', function() {
-        console.log('Database connection opened for testing.');
-        done();
+
+before(async function () {
+  // increase timeout for slower DB startup
+  this.timeout(10000);
+
+  // connect to test DB (you can use your existing URI or a test-specific one)
+  const uri = "mongodb+srv://superuser:SuperPassword@supercluster.d83jj.mongodb.net/superData";
+
+  try {
+    await mongoose.connect(uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
-    // Add a short timeout fallback for safety if the connection fails silently
-    setTimeout(done, 5000); 
+    console.log("✅ Connected to MongoDB for tests");
+  } catch (err) {
+    console.error("❌ Failed to connect to MongoDB", err);
+    throw err;
+  }
 });
 
-after(function(done) {
-    // Optional: Close the Mongoose connection after all tests are done
-    // This cleans up the environment.
-    mongoose.connection.close(function() {
-        console.log('Database connection closed after testing.');
-        done();
-    });
+after(async () => {
+  await mongoose.connection.close();
+  console.log("🔌 MongoDB connection closed after tests");
 });
 // ------------------------------------------
 
@@ -38,10 +41,21 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 1
             }
+            console.log('Testing planet:', payload.id);
           chai.request(app)
               .post('/planet')
               .send(payload)
               .end((err, res) => {
+                    if (err) {
+                        console.error('Request error:', err);
+                    } else {
+                        console.log('Full response for Mercury:', res.body);
+                    }
+
+                    // Check the response is actually an object
+                    if (!res.body || typeof res.body !== 'object') {
+                        return done(new Error('Response body is invalid or empty'));
+                    }
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(1);
                     res.body.should.have.property('name').eql('Mercury');
@@ -57,6 +71,16 @@ describe('Planets API Suite', () => {
               .post('/planet')
               .send(payload)
               .end((err, res) => {
+                    if (err) {
+                        console.error('Request error:', err);
+                    } else {
+                        console.log('Full response for Mercury:', res.body);
+                    }
+
+                    // Check the response is actually an object
+                    if (!res.body || typeof res.body !== 'object') {
+                        return done(new Error('Response body is invalid or empty'));
+                    }
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(2);
                     res.body.should.have.property('name').eql('Venus');
@@ -72,6 +96,16 @@ describe('Planets API Suite', () => {
               .post('/planet')
               .send(payload)
               .end((err, res) => {
+                    if (err) {
+                        console.error('Request error:', err);
+                    } else {
+                        console.log('Full response for Mercury:', res.body);
+                    }
+
+                    // Check the response is actually an object
+                    if (!res.body || typeof res.body !== 'object') {
+                        return done(new Error('Response body is invalid or empty'));
+                    }
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(3);
                     res.body.should.have.property('name').eql('Earth');
@@ -86,6 +120,16 @@ describe('Planets API Suite', () => {
               .post('/planet')
               .send(payload)
               .end((err, res) => {
+                    if (err) {
+                        console.error('Request error:', err);
+                    } else {
+                        console.log('Full response for Mercury:', res.body);
+                    }
+
+                    // Check the response is actually an object
+                    if (!res.body || typeof res.body !== 'object') {
+                        return done(new Error('Response body is invalid or empty'));
+                    }
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(4);
                     res.body.should.have.property('name').eql('Mars');
@@ -116,6 +160,16 @@ describe('Planets API Suite', () => {
               .post('/planet')
               .send(payload)
               .end((err, res) => {
+                    if (err) {
+                        console.error('Request error:', err);
+                    } else {
+                        console.log('Full response for Mercury:', res.body);
+                    }
+
+                    // Check the response is actually an object
+                    if (!res.body || typeof res.body !== 'object') {
+                        return done(new Error('Response body is invalid or empty'));
+                    }
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(6);
                     res.body.should.have.property('name').eql('Saturn');
@@ -131,6 +185,16 @@ describe('Planets API Suite', () => {
               .post('/planet')
               .send(payload)
               .end((err, res) => {
+                    if (err) {
+                        console.error('Request error:', err);
+                    } else {
+                        console.log('Full response for Mercury:', res.body);
+                    }
+
+                    // Check the response is actually an object
+                    if (!res.body || typeof res.body !== 'object') {
+                        return done(new Error('Response body is invalid or empty'));
+                    }
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(7);
                     res.body.should.have.property('name').eql('Uranus');
@@ -146,6 +210,16 @@ describe('Planets API Suite', () => {
               .post('/planet')
               .send(payload)
               .end((err, res) => {
+                    if (err) {
+                        console.error('Request error:', err);
+                    } else {
+                        console.log('Full response for Mercury:', res.body);
+                    }
+
+                    // Check the response is actually an object
+                    if (!res.body || typeof res.body !== 'object') {
+                        return done(new Error('Response body is invalid or empty'));
+                    }
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(8);
                     res.body.should.have.property('name').eql('Neptune');
@@ -171,9 +245,10 @@ describe('Testing Other Endpoints', () => {
 
     describe('it should fetch Live Status', () => {
         it('it checks Liveness endpoint', (done) => {
-          chai.request(server)
+          chai.request(app)
               .get('/live')
               .end((err, res) => {
+                    console.log("Responce for /live", res.body);
                     res.should.have.status(200);
                     res.body.should.have.property('status').eql('live');
                 done();
@@ -186,6 +261,7 @@ describe('Testing Other Endpoints', () => {
           chai.request(app)
               .get('/ready')
               .end((err, res) => {
+                console.log("Responce for /ready", res.body);
                     res.should.have.status(200);
                     res.body.should.have.property('status').eql('ready');
                 done();
