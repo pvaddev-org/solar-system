@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        MONGO_URI = "mongodb+srv://superuser:SuperPassword@supercluster.d83jj.mongodb.net/superData"
+        MONGO_URI = ""
     }
 
 
@@ -46,7 +46,7 @@ pipeline {
                 withCredentials([string(credentialsId: 'mongo-uri', variable: 'MONGO_URI')]) {
                     sh '''
                         mkdir -p reports/junit
-                        DEBUG=mocha-junit-reporter npm test
+                        npm test
                        '''
                 }
 
