@@ -8,12 +8,15 @@ let chaiHttp = require("chai-http");
 chai.should();
 chai.use(chaiHttp); 
 
+let isConnected = false;
 
 before(async function () {
-  // increase timeout for slower DB startup
-  this.timeout(10000);
 
-  // connect to test DB (you can use your existing URI or a test-specific one)
+  this.timeout(20000);
+  if (isConnected) {
+    console.log("MongoDB already connected, skipping reconnection");
+    return;
+  }
   const uri = "mongodb+srv://superuser:SuperPassword@supercluster.d83jj.mongodb.net/superData";
 
   try {
@@ -21,16 +24,22 @@ before(async function () {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log("✅ Connected to MongoDB for tests");
+    isConnected = true; 
+    console.log("Connected to MongoDB for tests");
   } catch (err) {
-    console.error("❌ Failed to connect to MongoDB", err);
+    console.error("Failed to connect to MongoDB", err);
     throw err;
   }
 });
 
 after(async () => {
-  await mongoose.connection.close();
-  console.log("🔌 MongoDB connection closed after tests");
+  if (isConnected) {
+    await mongoose.connection.close();
+    console.log("MongoDB connection closed after tests");
+    isConnected = false;
+  } else {
+    console.log("No MongoDB connection to close");
+  }
 });
 // ------------------------------------------
 
@@ -45,21 +54,15 @@ describe('Planets API Suite', () => {
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((err, res) => {
-                    if (err) {
-                        console.error('Request error:', err);
-                    } else {
-                        console.log('Full response for Mercury:', res.body);
-                    }
-
-                    // Check the response is actually an object
-                    if (!res.body || typeof res.body !== 'object') {
-                        return done(new Error('Response body is invalid or empty'));
-                    }
-                    res.should.have.status(200);
+              .end((res) => {
+                try {
+                    console.log('Testing planet:', res.id)
                     res.body.should.have.property('id').eql(1);
                     res.body.should.have.property('name').eql('Mercury');
                 done();
+               } catch (e) {
+                 done(e);
+                }
               });
         });
 
@@ -67,24 +70,19 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 2
             }
+            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((err, res) => {
-                    if (err) {
-                        console.error('Request error:', err);
-                    } else {
-                        console.log('Full response for Mercury:', res.body);
-                    }
-
-                    // Check the response is actually an object
-                    if (!res.body || typeof res.body !== 'object') {
-                        return done(new Error('Response body is invalid or empty'));
-                    }
+              .end((res) => {
+                try {
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(2);
                     res.body.should.have.property('name').eql('Venus');
                 done();
+              } catch (e) {
+                done(e);
+              }  
               });
         });
 
@@ -92,48 +90,38 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 3
             }
+            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((err, res) => {
-                    if (err) {
-                        console.error('Request error:', err);
-                    } else {
-                        console.log('Full response for Mercury:', res.body);
-                    }
-
-                    // Check the response is actually an object
-                    if (!res.body || typeof res.body !== 'object') {
-                        return done(new Error('Response body is invalid or empty'));
-                    }
+              .end((res) => {
+                try {
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(3);
                     res.body.should.have.property('name').eql('Earth');
                 done();
+              }  catch (e) {
+                done(e);
+              }
               });
         });
         it('it should fetch a planet named Mars', (done) => {
             let payload = {
                 id: 4
             }
+            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((err, res) => {
-                    if (err) {
-                        console.error('Request error:', err);
-                    } else {
-                        console.log('Full response for Mercury:', res.body);
-                    }
-
-                    // Check the response is actually an object
-                    if (!res.body || typeof res.body !== 'object') {
-                        return done(new Error('Response body is invalid or empty'));
-                    }
+              .end((res) => {
+                try {
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(4);
                     res.body.should.have.property('name').eql('Mars');
                 done();
+                } catch (e) {
+                  done(e);
+                }
               });
         });
 
@@ -141,14 +129,19 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 5
             }
+            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((err, res) => {
+              .end((res) => {
+              try {
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(5);
                     res.body.should.have.property('name').eql('Jupiter');
                 done();
+                } catch (e) {
+                  done(e);
+                }
               });
         });
 
@@ -156,24 +149,20 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 6
             }
+            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((err, res) => {
-                    if (err) {
-                        console.error('Request error:', err);
-                    } else {
-                        console.log('Full response for Mercury:', res.body);
-                    }
-
-                    // Check the response is actually an object
-                    if (!res.body || typeof res.body !== 'object') {
-                        return done(new Error('Response body is invalid or empty'));
-                    }
+              .end((res) => {
+                try {
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(6);
                     res.body.should.have.property('name').eql('Saturn');
+                
                 done();
+                } catch (e) {
+                  done(e);
+                }
               });
         });
 
@@ -181,24 +170,19 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 7
             }
+            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((err, res) => {
-                    if (err) {
-                        console.error('Request error:', err);
-                    } else {
-                        console.log('Full response for Mercury:', res.body);
-                    }
-
-                    // Check the response is actually an object
-                    if (!res.body || typeof res.body !== 'object') {
-                        return done(new Error('Response body is invalid or empty'));
-                    }
+              .end((res) => {
+                try {
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(7);
                     res.body.should.have.property('name').eql('Uranus');
                 done();
+                } catch (e) {
+                  done(e);
+                }
               });
         });
 
@@ -206,24 +190,19 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 8
             }
+            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((err, res) => {
-                    if (err) {
-                        console.error('Request error:', err);
-                    } else {
-                        console.log('Full response for Mercury:', res.body);
-                    }
-
-                    // Check the response is actually an object
-                    if (!res.body || typeof res.body !== 'object') {
-                        return done(new Error('Response body is invalid or empty'));
-                    }
+              .end((res) => {
+                try {
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(8);
                     res.body.should.have.property('name').eql('Neptune');
                 done();
+                } catch (e) {
+                  done(e);
+                }
               });
         });
     });        
@@ -236,9 +215,13 @@ describe('Testing Other Endpoints', () => {
         it('it should fetch OS details', (done) => {
           chai.request(app)
               .get('/os')
-              .end((err, res) => {
+              .end((res) => {
+                try {
                     res.should.have.status(200);
                 done();
+                } catch (e) {
+                  done(e);
+                }
               });
         });
     });
@@ -248,10 +231,14 @@ describe('Testing Other Endpoints', () => {
           chai.request(app)
               .get('/live')
               .end((err, res) => {
+                try {
                     console.log("Responce for /live", res.body);
                     res.should.have.status(200);
                     res.body.should.have.property('status').eql('live');
                 done();
+                } catch (e) {
+                  done(e);
+                }
               });
         });
     });
@@ -261,10 +248,14 @@ describe('Testing Other Endpoints', () => {
           chai.request(app)
               .get('/ready')
               .end((err, res) => {
+                try {
                 console.log("Responce for /ready", res.body);
                     res.should.have.status(200);
                     res.body.should.have.property('status').eql('ready');
                 done();
+                } catch (e) {
+                  done(e);
+                }
               });
         });
     });
