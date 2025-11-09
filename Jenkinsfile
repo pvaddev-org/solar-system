@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        MONGO_URI = ""
-    }
-
 
     stages {
         stage('Installing Dependancies') {

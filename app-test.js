@@ -17,7 +17,7 @@ before(async function () {
     console.log("MongoDB already connected, skipping reconnection");
     return;
   }
-  const uri = "mongodb+srv://superuser:SuperPassword@supercluster.d83jj.mongodb.net/superData";
+  const uri = process.env.MONGO_URI;
 
   try {
     await mongoose.connect(uri, {

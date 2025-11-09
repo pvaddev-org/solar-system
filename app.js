@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '/'))); 
 app.use(cors())
 
-mongoose.connect("mongodb+srv://superuser:SuperPassword@supercluster.d83jj.mongodb.net/superData")
+mongoose.connect(process.env.MONGO_URI)
 .then(() => {
     console.log("MongoDB Connection Successful");
 })
