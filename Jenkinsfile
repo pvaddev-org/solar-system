@@ -46,7 +46,7 @@ pipeline {
                        '''
                 }
 
-                junit allowEmptyResults: true, stdioRetension: '', testResults: 'test-results.xml', skipPublishingChecks: true
+                junit allowEmptyResults: true, testResults: 'test-results.xml', skipPublishingChecks: true
             }
         }
     }
