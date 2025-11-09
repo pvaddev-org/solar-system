@@ -50,13 +50,17 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 1
             }
-            console.log('Testing planet:', payload.id);
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((res) => {
+              .end((err, res) => {
                 try {
-                    console.log('Testing planet:', res.id)
+                    if (err) {
+                    console.error('Request error:', err);
+                    return done(err);
+                    }
+                    console.log('Testing planet:',res.body.name);
+                    res.should.have.status(200);
                     res.body.should.have.property('id').eql(1);
                     res.body.should.have.property('name').eql('Mercury');
                 done();
@@ -70,12 +74,16 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 2
             }
-            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((res) => {
+              .end((err, res) => {
                 try {
+                    if (err) {
+                    console.error('Request error:', err);
+                    return done(err);
+                    }
+                    console.log('Testing planet:',res.body.name);
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(2);
                     res.body.should.have.property('name').eql('Venus');
@@ -90,12 +98,16 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 3
             }
-            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((res) => {
+              .end((err, res) => {
                 try {
+                    if (err) {
+                    console.error('Request error:', err);
+                    return done(err);
+                    }
+                    console.log('Testing planet:',res.body.name);
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(3);
                     res.body.should.have.property('name').eql('Earth');
@@ -109,12 +121,16 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 4
             }
-            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((res) => {
+              .end((err, res) => {
                 try {
+                    if (err) {
+                    console.error('Request error:', err);
+                    return done(err);
+                    }
+                    console.log('Testing planet:',res.body.name);
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(4);
                     res.body.should.have.property('name').eql('Mars');
@@ -129,12 +145,16 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 5
             }
-            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((res) => {
+              .end((err, res) => {
               try {
+                    if (err) {
+                    console.error('Request error:', err);
+                    return done(err);
+                    }
+                    console.log('Testing planet:',res.body.name);
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(5);
                     res.body.should.have.property('name').eql('Jupiter');
@@ -149,16 +169,19 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 6
             }
-            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((res) => {
+              .end((err, res) => {
                 try {
+                    if (err) {
+                    console.error('Request error:', err);
+                    return done(err);
+                    }
+                    console.log('Testing planet:',res.body.name);
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(6);
                     res.body.should.have.property('name').eql('Saturn');
-                
                 done();
                 } catch (e) {
                   done(e);
@@ -170,12 +193,16 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 7
             }
-            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((res) => {
+              .end((err, res) => {
                 try {
+                    if (err) {
+                    console.error('Request error:', err);
+                    return done(err);
+                    }
+                    console.log('Testing planet:',res.body.name);
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(7);
                     res.body.should.have.property('name').eql('Uranus');
@@ -190,12 +217,16 @@ describe('Planets API Suite', () => {
             let payload = {
                 id: 8
             }
-            console.log('Testing planet:', payload.id)
           chai.request(app)
               .post('/planet')
               .send(payload)
-              .end((res) => {
+              .end((err, res) => {
                 try {
+                    if (err) {
+                    console.error('Request error:', err);
+                    return done(err);
+                    }
+                    console.log('Testing planet:',res.body.name);
                     res.should.have.status(200);
                     res.body.should.have.property('id').eql(8);
                     res.body.should.have.property('name').eql('Neptune');
@@ -215,8 +246,9 @@ describe('Testing Other Endpoints', () => {
         it('it should fetch OS details', (done) => {
           chai.request(app)
               .get('/os')
-              .end((res) => {
+              .end((err, res) => {
                 try {
+                    console.log("Responce for /os", res.body);
                     res.should.have.status(200);
                 done();
                 } catch (e) {
