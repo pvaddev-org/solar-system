@@ -37,14 +37,17 @@ pipeline {
             }
         }
 
-        stage('Code Coverage') {
+        stage('Unit Testing') {
             options { retry(2) }
             steps {
                 withCredentials([string(credentialsId: 'mongo-uri', variable: 'MONGO_URI')]) {
-                    sh 'npm run coverage'
+                    sh '''
+                        mkdir -p reports/junit
+                        npm test
+                       '''
                 }
 
-                //junit allowEmptyResults: true, testResults: 'reports/junit/test-results.xml', skipPublishingChecks: true
+                junit allowEmptyResults: true, testResults: 'reports/junit/test-results.xml', skipPublishingChecks: true
             }
         }
     }
