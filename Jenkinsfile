@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        sonar 'SonarScanner-7'
+    }
+
 
     stages {
         stage('Installing Dependancies') {
@@ -46,9 +50,25 @@ pipeline {
                         npm test
                        '''
                 }
-
-                junit allowEmptyResults: true, testResults: 'reports/junit/test-results.xml', skipPublishingChecks: true
             }
+        }
+
+        stage('SAST - SonarQube Analysis') {
+            steps {
+                script {
+                    sh "${tool 'SonarScanner-7'}/bin/sonar-scanner"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            junit allowEmptyResults: true, testResults: 'reports/junit/test-results.xml', skipPublishingChecks: true
+
+       //   junit allowEmptyResults: true, keepProperties: true, testResults: 'dependency-check-junit.xml'
+
+        //  publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, icon: '', keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependancy Check HTML Report', reportTitles: '', useWrapperFileDirectly: true])
         }
     }
 }   
