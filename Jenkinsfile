@@ -53,7 +53,7 @@ pipeline {
             }
         }
 
-        stage('SAST - SonarQube Analysis') {
+        stage('SAST - SonarQube') {
             steps {
                 script {
                     sh "${tool 'SonarScanner-7'}/bin/sonar-scanner"
