@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        SONAR_SCANNER_HOME = tool 'SonarScanner-7'
+    }
+
     stages {
         stage('Installing Dependancies') {
             steps {
@@ -51,7 +55,7 @@ pipeline {
         stage('SAST - SonarQube') {
             steps {
                 script {
-                    sh "sonar-scanner"
+                    sh "${env.SONAR_SCANNER_HOME}/bin/sonar-scanner"
                 }
             }
         }
