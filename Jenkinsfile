@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        SONAR_SCANNER_HOME = tool 'SonarScanner-7'
-    }
-
     stages {
         stage('Installing Dependancies') {
             steps {
@@ -55,7 +51,10 @@ pipeline {
         stage('SAST - SonarQube') {
             steps {
                 script {
-                    sh "${env.SONAR_SCANNER_HOME}/bin/sonar-scanner"
+                    def scannerHome = tool 'SonarScanner-7'
+                    withSonarQubeEnv('SonarScanner-7') {
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=Solar-System-Project -Dsonar.sources=."
+                    }
                 }
             }
         }
