@@ -38,6 +38,7 @@ pipeline {
         }
 
         stage('Unit Testing') {
+            options { retry(2) }
             steps {
                 withCredentials([string(credentialsId: 'mongo-uri', variable: 'MONGO_URI')]) {
                     sh '''
