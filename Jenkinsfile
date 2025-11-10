@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        sonar 'SonarScanner-7'
-    }
-
-
     stages {
         stage('Installing Dependancies') {
             steps {
@@ -56,7 +51,7 @@ pipeline {
         stage('SAST - SonarQube') {
             steps {
                 script {
-                    sh "${tool 'SonarScanner-7'}/bin/sonar-scanner"
+                    sh "sonar-scanner"
                 }
             }
         }
