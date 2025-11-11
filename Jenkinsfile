@@ -56,8 +56,9 @@ pipeline {
                     """
                     }
                 }
-
+                timeout(time: 60, unit: 'SECONDS') {
                 waitForQualityGate abortPipeline: true
+                }
             }
         }
     }
