@@ -24,13 +24,8 @@ pipeline {
                 //             --scan \'./' 
                 //             --out \'./\' 
                 //             --format \'ALL\' 
+                //             --disableYarnAudit \
                 //             --prettyPrint''', odcInstallation: 'OWASP-DepCheck-12'
-
-                //         dependencyCheckPublisher failedTotalCritical: 1, pattern: 'dependency-check-report.xml', stopBuild: true
-
-                //         junit allowEmptyResults: true, keepProperties: true, testResults: 'dependency-check-junit.xml'
-
-                //         publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, icon: '', keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependancy Check HTML Report', reportTitles: '', useWrapperFileDirectly: true])
                 //     }
                 // }
             }
@@ -60,6 +55,7 @@ pipeline {
                         -Dsonar.sources=.
                     """
                     }
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
