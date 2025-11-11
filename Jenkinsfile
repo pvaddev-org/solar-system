@@ -54,7 +54,7 @@ pipeline {
                     def scannerHome = tool 'SonarScanner-7'
                     withSonarQubeEnv('SonarScanner-7') {
                         sh """
-                        export SONAR_SCANNER_OPTS="-Xmx3072m"
+                        export SONAR_SCANNER_OPTS="-Xmx1024m"
                         ${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=Solar-System-Project \
                         -Dsonar.sources=.
