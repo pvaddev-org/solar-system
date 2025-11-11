@@ -52,7 +52,6 @@ pipeline {
             steps {
                 script {
                     def scannerHome = tool 'SonarScanner-7'
-                    export SONAR_SCANNER_OPTS="-Xmx2048m"
                     withSonarQubeEnv('SonarScanner-7') {
                         sh """
                         export SONAR_SCANNER_OPTS="-Xmx2048m"
