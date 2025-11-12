@@ -107,6 +107,14 @@ pipeline {
                 }
             }
         }
+
+        stage('Push Docker Image') {
+            steps {
+                withDockerRegistry(credentialsId: 'dockerhub-creds', url: "") {
+                    sh 'docker push pvaddocker/solar-system:$GIT_COMMIT'
+                }
+            }
+        }
     }
 
     post {
