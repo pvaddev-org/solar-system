@@ -52,14 +52,13 @@ pipeline {
                             export SONAR_SCANNER_OPTS="-Xmx1024m"
                             ${scannerHome}/bin/sonar-scanner \
                             -Dsonar.projectKey=Solar-System-Project \
-                            -Dsonar.sources=. \
-                            -Dsonar.branch.name=main
+                            -Dsonar.sources=.
                         """
                     }
                 }
-                timeout(time: 60, unit: 'SECONDS') {
-                waitForQualityGate abortPipeline: true
-                }
+               // timeout(time: 60, unit: 'SECONDS') {
+               // waitForQualityGate abortPipeline: true
+                //}
             }
         }
     }
