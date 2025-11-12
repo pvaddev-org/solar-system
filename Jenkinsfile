@@ -64,7 +64,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t pvaddocker/solar-system:$GIT_COMMIT'
+                sh 'docker build -t pvaddocker/solar-system:$GIT_COMMIT .'
             }
         }
     }
