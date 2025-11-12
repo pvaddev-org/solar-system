@@ -43,22 +43,28 @@ pipeline {
             }
         }
 
-        stage('SAST - SonarQube') {
-            steps {
-                script {
-                    def scannerHome = tool 'SonarScanner-7'
-                    withSonarQubeEnv('SonarScanner-7') {
-                        sh """
-                            export SONAR_SCANNER_OPTS="-Xmx1024m"
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=Solar-System-Project \
-                            -Dsonar.sources=.
-                        """
-                    }
-                }
+        // stage('SAST - SonarQube') {
+            // steps {
+            //     script {
+            //         def scannerHome = tool 'SonarScanner-7'
+            //         withSonarQubeEnv('SonarScanner-7') {
+            //             sh """
+            //                 export SONAR_SCANNER_OPTS="-Xmx1024m"
+            //                 ${scannerHome}/bin/sonar-scanner \
+            //                 -Dsonar.projectKey=Solar-System-Project \
+            //                 -Dsonar.sources=.
+            //             """
+            //         }
+            //     }
                // timeout(time: 60, unit: 'SECONDS') {
                // waitForQualityGate abortPipeline: true
                 //}
+            }
+        // }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t pvaddocker/solar-system:$GIT_COMMIT'
             }
         }
     }
