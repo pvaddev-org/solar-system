@@ -59,7 +59,7 @@ pipeline {
                // timeout(time: 60, unit: 'SECONDS') {
                // waitForQualityGate abortPipeline: true
                 //}
-            }
+            // }
         // }
 
         stage('Build Docker Image') {
