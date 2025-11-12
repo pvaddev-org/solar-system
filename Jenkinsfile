@@ -78,7 +78,7 @@ pipeline {
                         --format json -o trivy-image-MEDIUM-results.json
 
                     trivy image pvaddocker/solar-system:$GIT_COMMIT \
-                        --severity HIGH, CRITICAL \
+                        --severity HIGH,CRITICAL \
                         --exit-code 1 \
                         --quiet \
                         --format json -o trivy-image-CRITICAL-results.json
