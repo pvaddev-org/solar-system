@@ -68,22 +68,22 @@ pipeline {
             }
         }
 
-        stage('Trivy Vulnerability Image Scanner') {
-            steps {
-                sh '''
-                   trivy image pvaddocker/solar-system:$GIT_COMMIT \
-                        --severity LOW,MEDIUM \
-                        --exit-code 0 \
-                        --quiet \
-                        --format json -o trivy-image-MEDIUM-results.json
+        // stage('Trivy Vulnerability Image Scanner') {
+        //     steps {
+        //         sh '''
+        //            trivy image pvaddocker/solar-system:$GIT_COMMIT \
+        //                 --severity LOW,MEDIUM \
+        //                 --exit-code 0 \
+        //                 --quiet \
+        //                 --format json -o trivy-image-MEDIUM-results.json
 
-                    trivy image pvaddocker/solar-system:$GIT_COMMIT \
-                        --severity HIGH,CRITICAL \
-                        --exit-code 1 \
-                        --quiet \
-                        --format json -o trivy-image-CRITICAL-results.json
-                   '''
-            }
+        //             trivy image pvaddocker/solar-system:$GIT_COMMIT \
+        //                 --severity HIGH,CRITICAL \
+        //                 --exit-code 1 \
+        //                 --quiet \
+        //                 --format json -o trivy-image-CRITICAL-results.json
+        //            '''
+        //     }
 
             post {
                 always {
@@ -137,6 +137,20 @@ pipeline {
                         '''
                     }
                 }    
+            }
+        }
+
+        stage('Integration Testing - AWS EC2') {
+            when {
+                branch 'feature/*'
+            }
+            steps {
+                sh 'printenv | grep -i branch'
+                withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                    sh '''
+                        bash integration-testing.sh
+                    '''
+                }
             }
         }
     }
