@@ -148,6 +148,7 @@ pipeline {
                 sh 'printenv | grep -i branch'
                 withAWS(credentials: 'aws-creds', region: 'us-east-1') {
                     sh '''
+                        aws sts get-caller-identity
                         bash integration-testing.sh
                     '''
                 }
