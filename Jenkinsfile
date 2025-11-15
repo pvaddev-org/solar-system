@@ -141,16 +141,16 @@ pipeline {
         }
 
         stage('Integration Testing - AWS EC2') {
-            when {
-                branch 'feature/*'
-            }
+            when { branch 'feature/*'}
+            
             steps {
-                sh 'printenv | grep -i branch'
-                withAWS(credentials: 'aws-creds', region: 'us-east-1') {
-                    sh '''
-                        aws sts get-caller-identity
-                        bash integration-testing.sh
-                    '''
+                withCredentials([string(credentialsId: 'jenkins-role-arn', variable: ROLE_ARN)]) {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+                        sh '''
+                            aws sts get-caller-identity
+                            bash integration-testing.sh
+                        '''
+                    }
                 }
             }
         }
