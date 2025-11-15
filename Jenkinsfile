@@ -144,7 +144,7 @@ pipeline {
             when { branch 'feature/*'}
             
             steps {
-                withCredentials([string(credentialsId: 'jenkins-role-arn', variable: ROLE_ARN)]) {
+                withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
                     withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                         sh '''
                             aws sts get-caller-identity
