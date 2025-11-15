@@ -147,6 +147,9 @@ pipeline {
                 withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
                     withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                         sh '''
+                            aws iam list-attached-user-policies --user-name jenkins-deploy
+                            aws iam list-user-policies --user-name jenkins-deploy
+                            aws iam get-user --user-name jenkins-deploy
                             aws sts get-caller-identity
                             bash integration-testing.sh
                         '''
