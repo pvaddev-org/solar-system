@@ -155,10 +155,44 @@ pipeline {
                 }
             }
         }
+
+        stage('K8S Update Image Tag') {
+            when { branch 'PR*'}
+            
+            steps {
+                withCredentials([usernamePassword( credentialsId: 'jenkins-ci-bot-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+
+                    sh 'git clone -b main https://github.com/pvaddev/solar-system-gitops-repo.git'
+
+                    dir("solar-system-gitops-repo/kubernetes") {
+                        sh """
+                            git checkout main
+                            git checkout -b feature-$BUILD_ID
+
+                            sed -i "s#pvaddocker/solar-system:.*#pvaddocker/solar-system:$GIT_COMMIT#g" deployment.yml
+
+                            git config user.email "jenkins@user.com"
+                            git config user.name "jenkins-ci-bot"
+
+                            git remote set-url origin https://${GIT_USER}:${GIT_TOKEN}@github.com/pvaddev/solar-system-gitops-repo.git
+
+                            git add deployment.yml
+                            git commit -m "Update image tag to $GIT_COMMIT"
+                            git push -u origin feature-$BUILD_ID
+                        """
+                    }
+                }
+            }
+        }
     }
 
     post {
         always {
+            script {
+                if (fileExists("solar-system-gitops-repo")) {
+                    sh "rm -rf solar-system-gitops-repo"
+                }
+            }
             junit allowEmptyResults: true, testResults: 'reports/junit/test-results.xml', skipPublishingChecks: true
 
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'trivy-image-CRITICAL-results.html', reportName: 'Trivy Image Critical Vul Report', reportTitles: '', useWrapperFileDirectly: true])
