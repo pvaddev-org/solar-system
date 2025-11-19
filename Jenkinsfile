@@ -189,11 +189,11 @@ pipeline {
             when { branch 'PR*'}
             
             steps {
-                withCredentials([usernamePassword( credentialsId: 'jenkins-git-token', variable: 'GIT_TOKEN')]) {   
+                withCredentials([usernamePassword( credentialsId: 'jenkins-git-token', variable: 'GIT_REPO_TOKEN')]) {   
                     sh """
                         curl -L -X POST \
                           -H "Accept: application/vnd.github+json" \
-                          -H "Authorization: Bearer \$GIT_TOKEN" \
+                          -H "Authorization: Bearer \$GIT_REPO_TOKEN" \
                           -H "X-GitHub-Api-Version: 2022-11-28" \
                           https://api.github.com/repos/pvaddev/solar-system-gitops-repo/pulls \
                           -d '{
