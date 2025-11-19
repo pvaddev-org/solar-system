@@ -193,7 +193,7 @@ pipeline {
                     sh """
                         curl -L -X POST \
                           -H "Accept: application/vnd.github+json" \
-                          -H "Authorization: Bearer $GIT_TOKEN" \
+                          -H "Authorization: Bearer \$GIT_TOKEN" \
                           -H "X-GitHub-Api-Version: 2022-11-28" \
                           https://api.github.com/repos/pvaddev/solar-system-gitops-repo/pulls \
                           -d '{
@@ -201,6 +201,7 @@ pipeline {
                               "body": "This PR was created automatically by Jenkins to update docker image in deployment.yml",
                               "head": "feature-$BUILD_ID",
                               "base": "main"
+                              }'
                     """
                 }
             }
