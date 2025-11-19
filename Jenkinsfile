@@ -160,7 +160,7 @@ pipeline {
             when { branch 'PR*'}
             
             steps {
-                withCredentials([usernamePassword( credentialsId: 'jenkins-git-token', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                withCredentials([usernamePassword( credentialsId: 'jenkins-ci-bot-creds', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
 
                     sh 'git clone -b main https://github.com/pvaddev/solar-system-gitops-repo.git'
 
@@ -181,6 +181,28 @@ pipeline {
                             git push -u origin feature-$BUILD_ID
                         """
                     }
+                }
+            }
+        }
+
+        tage('K8S - Raise PR') {
+            when { branch 'PR*'}
+            
+            steps {
+                withCredentials([string(credentialsId: 'jenkins-git-token', variable: 'GIT_TOKEN')]) {
+                    sh """
+                        curl -L -X POST \
+                        -H "Accept: application/vnd.github+json" \
+                        -H "Authorization: Bearer \$GIT_TOKEN" \
+                        -H "X-GitHub-Api-Version: 2022-11-28" \
+                        https://api.github.com/repos/pvaddev/solar-system-gitops-repo/pulls \
+                        -d '{
+                            "title": "Automated update from Jenkins build $BUILD_ID",
+                            "body": "This PR was created automatically by Jenkins to update docker image in deployment.yml",
+                            "head": "feature-$BUILD_ID",
+                            "base": "main"
+                        }'
+                    """
                 }
             }
         }
