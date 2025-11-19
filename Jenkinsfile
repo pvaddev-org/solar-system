@@ -185,7 +185,7 @@ pipeline {
             }
         }
 
-        tage('K8S - Raise PR') {
+        stage('K8S - Raise PR') {
             when { branch 'PR*'}
             
             steps {
