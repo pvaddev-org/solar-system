@@ -197,9 +197,9 @@ pipeline {
                           -H "X-GitHub-Api-Version: 2022-11-28" \
                           https://api.github.com/repos/pvaddev/solar-system-gitops-repo/pulls \
                           -d '{
-                              "title": "Automated update from Jenkins build $BUILD_ID",
+                              "title": "Automated update from Jenkins build $BUILD_NUMBER",
                               "body": "This PR was created automatically by Jenkins to update docker image in deployment.yml",
-                              "head": "feature-$BUILD_ID",
+                              "head": "feature-$BUILD_NUMBER",
                               "base": "main"
                               }'
                     """
