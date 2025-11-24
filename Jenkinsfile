@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     //environment {
-      //  CLUSTER_IP = credentials('ClusterIP')
+     // //  CLUSTER_IP = credentials('ClusterIP')
     //}
 
 
