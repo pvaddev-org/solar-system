@@ -1,9 +1,9 @@
 pipeline {
     agent any
 
-    environment {
-        CLUSTER_IP = credentials('ClusterIP')
-    }
+    //environment {
+      //  CLUSTER_IP = credentials('ClusterIP')
+    //}
 
 
     stages {
