@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '/'))); 
 app.use(cors())
 
-mongoose.connect(process.env.MONGO_URIMONGO_URI)
+mongoose.connect(process.env.MONGO_URI)
 .then(() => {
     console.log("MongoDB Connection Successful");
 })
@@ -121,6 +121,8 @@ app.get('/ready', function(req, res) {
 
 module.exports = app;
 
-app.listen(PORT, () => { 
+if (require.main === module) {
+  app.listen(PORT, () => { 
     console.log(`Server successfully running on port - ${PORT}`); 
-});
+  });
+}
