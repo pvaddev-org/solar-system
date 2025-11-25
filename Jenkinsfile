@@ -129,7 +129,7 @@ pipeline {
                 script {
                     sshagent(['AWS-dev-deploy-ssh-key']) {
                         sh'''
-                            ssh -o StrictHostKeyChecking=no ubuntu@204.236.209.74 "
+                            ssh -o StrictHostKeyChecking=no ubuntu@204.236.209.74 whoami"
                                 if sudo docker ps -a | grep -q "solar-system"; then
                                         echo "Stopping container..."
                                             sudo docker stop "solar-system" && sudo docker rm "solar-system"
