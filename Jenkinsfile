@@ -190,52 +190,52 @@ pipeline {
             }
         }
 
-        stage('K8S - Raise PR') {
-            when { branch 'PR*'}
+        // stage('K8S - Raise PR') {
+        //     when { branch 'PR*'}
             
-            steps {
-                withCredentials([string(credentialsId: 'jenkins-git-token', variable: 'GIT_TOKEN')]) {
-                    sh """
-                        curl -L -X POST \
-                        -H "Accept: application/vnd.github+json" \
-                        -H "Authorization: Bearer \$GIT_TOKEN" \
-                        -H "X-GitHub-Api-Version: 2022-11-28" \
-                        https://api.github.com/repos/pvaddev/solar-system-gitops-repo/pulls \
-                        -d '{
-                            "title": "Automated update from Jenkins build $BUILD_ID",
-                            "body": "This PR was created automatically by Jenkins to update docker image in deployment.yml",
-                            "head": "feature-$BUILD_ID",
-                            "base": "main"
-                        }'
-                    """
-                }
-            }
-        }
+        //     steps {
+        //         withCredentials([string(credentialsId: 'jenkins-git-token', variable: 'GIT_TOKEN')]) {
+        //             sh """
+        //                 curl -L -X POST \
+        //                 -H "Accept: application/vnd.github+json" \
+        //                 -H "Authorization: Bearer \$GIT_TOKEN" \
+        //                 -H "X-GitHub-Api-Version: 2022-11-28" \
+        //                 https://api.github.com/repos/pvaddev/solar-system-gitops-repo/pulls \
+        //                 -d '{
+        //                     "title": "Automated update from Jenkins build $BUILD_ID",
+        //                     "body": "This PR was created automatically by Jenkins to update docker image in deployment.yml",
+        //                     "head": "feature-$BUILD_ID",
+        //                     "base": "main"
+        //                 }'
+        //             """
+        //         }
+        //     }
+        // }
 
-        stage('App Deployed?') {
-            steps {
-                timeout(time: 1, unit: 'DAYS') {
-                    input message: 'Is the PR Merged and ArgoCD Synced?', ok: 'YES! PR is Merged and ArgoCD Application Synced'
-                }
-            }
-        }
+        // stage('App Deployed?') {
+        //     steps {
+        //         timeout(time: 1, unit: 'DAYS') {
+        //             input message: 'Is the PR Merged and ArgoCD Synced?', ok: 'YES! PR is Merged and ArgoCD Application Synced'
+        //         }
+        //     }
+        // }
 
-        stage('DAST - OWASP ZAP') {
-            when { branch 'PR*'}
+        // stage('DAST - OWASP ZAP') {
+        //     when { branch 'PR*'}
             
-            steps {
-                sh '''
-                    chmod 777 $(pwd)
-                    docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
-                    -t http://$CLUSTER_IP:30000/api-docs/ \
-                    -f openapi \
-                    -r zap_report.html \
-                    -w zap_report.md \
-                    -J zap_json-report.json \
-                    -x zap_xml_report.xml
-                '''
-            }
-        }
+        //     steps {
+        //         sh '''
+        //             chmod 777 $(pwd)
+        //             docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
+        //             -t http://$CLUSTER_IP:30000/api-docs/ \
+        //             -f openapi \
+        //             -r zap_report.html \
+        //             -w zap_report.md \
+        //             -J zap_json-report.json \
+        //             -x zap_xml_report.xml
+        //         '''
+        //     }
+        // }
     }
 
     post {
