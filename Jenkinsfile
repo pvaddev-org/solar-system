@@ -1,9 +1,9 @@
 pipeline {
     agent any
 
-    //environment {
-    //  CLUSTER_IP = credentials('ClusterIP')
-    //}
+    environment {
+     CLUSTER_IP = credentials('ClusterIP')
+    }
 
 
     stages {
@@ -212,30 +212,27 @@ pipeline {
             }
         }
 
-        // stage('App Deployed?') {
-        //     steps {
-        //         timeout(time: 1, unit: 'DAYS') {
-        //             input message: 'Is the PR Merged and ArgoCD Synced?', ok: 'YES! PR is Merged and ArgoCD Application Synced'
-        //         }
-        //     }
-        // }
+        stage('App Deployed?') {
+            steps {
+                timeout(time: 1, unit: 'DAYS') {
+                    input message: 'Is the PR Merged and ArgoCD Synced?', ok: 'YES! PR is Merged and ArgoCD Application Synced'
+                }
+            }
+        }
 
-        // stage('DAST - OWASP ZAP') {
-        //     when { branch 'PR*'}
+        stage('DAST - OWASP ZAP') {
+            when { branch 'PR*'}
             
-        //     steps {
-        //         sh '''
-        //             chmod 777 $(pwd)
-        //             docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
-        //             -t http://$CLUSTER_IP:30000/api-docs/ \
-        //             -f openapi \
-        //             -r zap_report.html \
-        //             -w zap_report.md \
-        //             -J zap_json-report.json \
-        //             -x zap_xml_report.xml
-        //         '''
-        //     }
-        // }
+            steps {
+                sh '''
+                    chmod 777 $(pwd)
+                    docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
+                    -t http://$CLUSTER_IP:30000/api-docs/ \
+                    -f openapi \
+                    -r zap_report.html
+                '''
+            }
+        }
     }
 
     post {
