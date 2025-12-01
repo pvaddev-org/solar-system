@@ -241,7 +241,6 @@ pipeline {
                         sh '''
                             ls -ltr
                             mkdir reports-$BUILD_ID
-                            cp -rf coverage/ reports-$BUILD_ID/
                             cp dependency*.* test_results.xml trivy*.* zap*.* reports_$BUILD_ID/
                             ls -ltr reports-$BUILD_ID/
                         '''
