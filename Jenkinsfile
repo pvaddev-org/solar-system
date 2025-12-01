@@ -229,7 +229,8 @@ pipeline {
                     docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
                     -t http://$CLUSTER_IP:30000/api-docs/ \
                     -f openapi \
-                    -r zap_report.html
+                    -r zap_report.html \
+                    -c zap-ignore_rules
                 '''
             }
         }
@@ -243,6 +244,8 @@ pipeline {
                 }
             }
             junit allowEmptyResults: true, testResults: 'reports/junit/test-results.xml', skipPublishingChecks: true
+
+            publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'zap_report.html', reportName: 'DAST - OWASP - OWASP ZAP Report', reportTitles: '', useWrapperFileDirectly: true])
 
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'trivy-image-CRITICAL-results.html', reportName: 'Trivy Image Critical Vul Report', reportTitles: '', useWrapperFileDirectly: true])
 
