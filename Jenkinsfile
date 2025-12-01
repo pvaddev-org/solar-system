@@ -241,7 +241,7 @@ pipeline {
                         sh '''
                             ls -ltr
                             mkdir reports-$BUILD_ID/
-                            cp dependency*.* test_results.xml trivy*.* zap*.* reports_$BUILD_ID/
+                            cp dependency*.* test_results.xml trivy*.* zap*.* reports-$BUILD_ID/
                             ls -ltr reports-$BUILD_ID/
                         '''
                         s3Upload(file:"reports-$BUILD_ID", bucket:'jenkins-reporting-bucket', path:"jenkins-$BUILD_ID/")
