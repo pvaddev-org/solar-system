@@ -152,8 +152,6 @@ pipeline {
                 withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
                     withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                         sh '''
-                            echo "Using role ARN: $ROLE_ARN"
-                            aws sts get-caller-identity
                             bash integration-testing.sh
                         '''
                     }
@@ -232,6 +230,24 @@ pipeline {
                     -r zap_report.html \
                     -c zap-ignore_rules
                 '''
+            }
+        }
+        stage('Upload report - AWS S3') {
+            when { branch 'PR*'}
+            
+            steps {
+                withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+                        sh '''
+                            ls -ltr
+                            mkdir reports-$BUILD_ID
+                            cp -rf coverage/ reports-$BUILD_ID/
+                            cp dependency*.* test_results.xml trivy*.* zap*.* reports_$BUILD_ID/
+                            ls -ltr reports-$BUILD_ID/
+                        '''
+                        s3Upload(file:"reports-$BUILD_ID", bucket:'jenkins-reporting-bucket', path:"jenkins-$BUILD_ID/")
+                    }    
+                }           
             }
         }
     }
