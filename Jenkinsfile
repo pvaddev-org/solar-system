@@ -249,6 +249,15 @@ pipeline {
                 }           
             }
         }
+
+        stage('Deploy to Prod') {
+            when { branch 'main'}
+            steps {
+                timeout(time: 1, unit: 'DAYS') {
+                    input message: 'Deploy to Production?', ok: 'YES! Let us try this on Production', submitter: 'pvaddev'
+                }
+            }
+        }
     }
 
     post {
