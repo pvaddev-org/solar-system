@@ -218,20 +218,20 @@ pipeline {
             }
         }
 
-        stage('DAST - OWASP ZAP') {
-            when { branch 'PR*'}
+        // stage('DAST - OWASP ZAP') {
+        //     when { branch 'PR*'}
             
-            steps {
-                sh '''
-                    chmod 777 $(pwd)
-                    docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
-                    -t http://$CLUSTER_IP:30000/api-docs/ \
-                    -f openapi \
-                    -r zap_report.html \
-                    -c zap-ignore_rules
-                '''
-            }
-        }
+        //     steps {
+        //         sh '''
+        //             chmod 777 $(pwd)
+        //             docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
+        //             -t http://$CLUSTER_IP:30000/api-docs/ \
+        //             -f openapi \
+        //             -r zap_report.html \
+        //             -c zap-ignore_rules
+        //         '''
+        //     }
+        // }
         stage('Upload report - AWS S3') {
             when { branch 'PR*'}
             
@@ -240,7 +240,7 @@ pipeline {
                     withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                         sh '''
                             ls -ltr
-                            mkdir reports-$BUILD_ID
+                            mkdir reports-$BUILD_ID/
                             cp dependency*.* test_results.xml trivy*.* zap*.* reports_$BUILD_ID/
                             ls -ltr reports-$BUILD_ID/
                         '''
@@ -265,9 +265,9 @@ pipeline {
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'trivy-image-CRITICAL-results.html', reportName: 'Trivy Image Critical Vul Report', reportTitles: '', useWrapperFileDirectly: true])
 
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'trivy-image-MEDIUM-results.html', reportName: 'Trivy Image Medium Vul Report', reportTitles: '', useWrapperFileDirectly: true])
-       //   junit allowEmptyResults: true, keepProperties: true, testResults: 'dependency-check-junit.xml'
+            junit allowEmptyResults: true, keepProperties: true, testResults: 'dependency-check-junit.xml'
 
-        //  publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, icon: '', keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependancy Check HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+            publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, icon: '', keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependancy Check HTML Report', reportTitles: '', useWrapperFileDirectly: true])
         }
     }
 }   
