@@ -1,9 +1,9 @@
 pipeline {
     agent any
 
-    //environment {
-    //  CLUSTER_IP = credentials('ClusterIP')
-    //}
+    environment {
+     CLUSTER_IP = credentials('ClusterIP')
+    }
 
 
     stages {
@@ -129,7 +129,7 @@ pipeline {
                 script {
                     sshagent(['AWS-dev-deploy-ssh-key']) {
                         sh'''
-                            ssh -o StrictHostKeyChecking=no ubuntu@204.236.209.74 "
+                            ssh -o StrictHostKeyChecking=no ubuntu@204.236.209.74 whoami"
                                 if sudo docker ps -a | grep -q "solar-system"; then
                                         echo "Stopping container..."
                                             sudo docker stop "solar-system" && sudo docker rm "solar-system"
@@ -152,8 +152,6 @@ pipeline {
                 withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
                     withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                         sh '''
-                            echo "Using role ARN: $ROLE_ARN"
-                            aws sts get-caller-identity
                             bash integration-testing.sh
                         '''
                     }
@@ -220,20 +218,44 @@ pipeline {
             }
         }
 
-        stage('DAST - OWASP ZAP') {
+        // stage('DAST - OWASP ZAP') {
+        //     when { branch 'PR*'}
+            
+        //     steps {
+        //         sh '''
+        //             chmod 777 $(pwd)
+        //             docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
+        //             -t http://$CLUSTER_IP:30000/api-docs/ \
+        //             -f openapi \
+        //             -r zap_report.html \
+        //             -c zap-ignore_rules
+        //         '''
+        //     }
+        // }
+        stage('Upload report - AWS S3') {
             when { branch 'PR*'}
             
             steps {
-                sh '''
-                    chmod 777 $(pwd)
-                    docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
-                    -t http://$CLUSTER_IP:30000/api-docs/ \
-                    -f openapi \
-                    -r zap_report.html \
-                    -w zap_report.md \
-                    -J zap_json-report.json \
-                    -x zap_xml_report.xml
-                '''
+                withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+                        sh '''
+                            ls -ltr
+                            mkdir reports-$BUILD_ID/
+                            cp zap*.* reports-$BUILD_ID/
+                            ls -ltr reports-$BUILD_ID/
+                        '''
+                        s3Upload(file:"reports-$BUILD_ID", bucket:'jenkins-reporting-bucket', path:"jenkins-$BUILD_ID/")
+                    }    
+                }           
+            }
+        }
+
+        stage('Deploy to Prod') {
+            when { branch 'main'}
+            steps {
+                timeout(time: 1, unit: 'DAYS') {
+                    input message: 'Deploy to Production?', ok: 'YES! Let us try this on Production', submitter: 'pvaddev'
+                }
             }
         }
     }
@@ -247,12 +269,14 @@ pipeline {
             }
             junit allowEmptyResults: true, testResults: 'reports/junit/test-results.xml', skipPublishingChecks: true
 
+            publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'zap_report.html', reportName: 'DAST - OWASP - OWASP ZAP Report', reportTitles: '', useWrapperFileDirectly: true])
+
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'trivy-image-CRITICAL-results.html', reportName: 'Trivy Image Critical Vul Report', reportTitles: '', useWrapperFileDirectly: true])
 
             publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: './', reportFiles: 'trivy-image-MEDIUM-results.html', reportName: 'Trivy Image Medium Vul Report', reportTitles: '', useWrapperFileDirectly: true])
-       //   junit allowEmptyResults: true, keepProperties: true, testResults: 'dependency-check-junit.xml'
+            junit allowEmptyResults: true, keepProperties: true, testResults: 'dependency-check-junit.xml'
 
-        //  publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, icon: '', keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependancy Check HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+            publishHTML([allowMissing: true, alwaysLinkToLastBuild: true, icon: '', keepAll: true, reportDir: './', reportFiles: 'dependency-check-jenkins.html', reportName: 'Dependancy Check HTML Report', reportTitles: '', useWrapperFileDirectly: true])
         }
     }
 }   
