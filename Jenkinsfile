@@ -219,20 +219,20 @@ pipeline {
             }
         }
 
-        // stage('DAST - OWASP ZAP') {
-        //     when { branch 'PR*'}
+        stage('DAST - OWASP ZAP') {
+            when { branch 'PR*'}
             
-        //     steps {
-        //         sh '''
-        //             chmod 777 $(pwd)
-        //             docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
-        //             -t http://$CLUSTER_IP:30000/api-docs/ \
-        //             -f openapi \
-        //             -r zap_report.html \
-        //             -c zap-ignore_rules
-        //         '''
-        //     }
-        // }
+            steps {
+                sh '''
+                    chmod 777 $(pwd)
+                    docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
+                    -t http://$CLUSTER_IP:30000/api-docs/ \
+                    -f openapi \
+                    -r zap_report.html \
+                    -c zap-ignore_rules
+                '''
+            }
+        }
         stage('Upload report - AWS S3') {
             when { branch 'PR*'}
             
