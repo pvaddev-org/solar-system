@@ -219,20 +219,20 @@ pipeline {
             }
         }
 
-        // stage('DAST - OWASP ZAP') {
-        //     when { branch 'PR*'}
+        stage('DAST - OWASP ZAP') {
+            when { branch 'PR*'}//
             
-        //     steps {
-        //         sh '''
-        //             chmod 777 $(pwd)
-        //             docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
-        //             -t http://$CLUSTER_IP:30000/api-docs/ \
-        //             -f openapi \
-        //             -r zap_report.html \
-        //             -c zap-ignore_rules
-        //         '''
-        //     }
-        // }
+            steps {
+                sh '''
+                    chmod 777 $(pwd)
+                    docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy zap-api-scan.py \
+                    -t http://$CLUSTER_IP:30000/api-docs/ \
+                    -f openapi \
+                    -r zap_report.html \
+                    -c zap-ignore_rules
+                '''
+            }
+        }
         stage('Upload report - AWS S3') {
             when { branch 'PR*'}
             
@@ -263,7 +263,8 @@ pipeline {
         stage('Lambda - S3 Upload & Deploy') {
             when { branch 'main'}
             steps {
-                withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+               withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                     sh '''
                         sed -i "/^module\\.exports = app;/,/^}/ s/^/\\/\\//" app.js
                         sed -i "s|^//module.exports.handler|module.exports.handler|" app.js
@@ -279,6 +280,7 @@ pipeline {
                            --s3-bucket solar-system-app-lambda-bucket \
                            --s3-key solar-system-lambda.zip
                     '''
+                    }
                 }    
             }
         }
