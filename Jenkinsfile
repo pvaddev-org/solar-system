@@ -220,7 +220,7 @@ pipeline {
         }
 
         stage('DAST - OWASP ZAP') {
-            when { branch 'PR*'}
+            when { branch 'PR*'}//
             
             steps {
                 sh '''
