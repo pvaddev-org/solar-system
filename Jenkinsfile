@@ -259,6 +259,29 @@ pipeline {
                 }
             }
         }
+
+        stage('Lambda - S3 Upload & Deploy') {
+            when { branch 'main'}
+            steps {
+                withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+                    sh '''
+                        sed -i "/^module\\.exports = app;/,/^}/ s/^/\\/\\//" app.js
+                        sed -i "s|^//module.exports.handler|module.exports.handler|" app.js
+                    '''
+                    sh '''
+                       zip -qr solar-system-lambda-$BUILD_ID.zip  app* package* index.html node*
+                       ls -ltr solar-system-lambda-$BUILD_ID.zip
+                    '''
+                    s3Upload(file:"solar-system-lambda-${BUILD_ID}.zip", bucket:'solar-system-app-lambda-bucket')
+                    sh '''
+                       aws lambda update-function-code \
+                           --function-name solar-system-function \
+                           --s3-bucket solar-system-app-lambda-bucket \
+                           --s3-key solar-system-lambda.zip
+                    '''
+                }    
+            }
+        }
     }
 
     post {
