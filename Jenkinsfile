@@ -265,7 +265,7 @@ pipeline {
             steps {
                 withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                     sh '''
-                        sed -i "/^module\.exports = app;/,/^}/ s/^/\/\//" app.js
+                        sed -i "/^module\\.exports = app;/,/^}/ s/^/\\/\\//" app.js
                         sed -i "s|^//module.exports.handler|module.exports.handler|" app.js
                     '''
                     sh '''
