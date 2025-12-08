@@ -3,6 +3,7 @@ pipeline {
 
     environment {
      CLUSTER_IP = credentials('ClusterIP')
+     MONGO_URI = credentials('mongo-uri')
     }
 
 
@@ -274,11 +275,16 @@ pipeline {
                        ls -ltr solar-system-lambda-$BUILD_ID.zip
                     '''
                     s3Upload(file:"solar-system-lambda-${BUILD_ID}.zip", bucket:'solar-system-app-lambda-bucket')
+                    sh"""
+                        aws lambda update-function-configuration \
+                            --function-name solar-system-function \
+                            --environment '{"Variables": "MONGO_URI": "${MONGO_URI}"}}'
+                    """
                     sh '''
-                       aws lambda update-function-code \
-                           --function-name solar-system-function \
-                           --s3-bucket solar-system-app-lambda-bucket \
-                           --s3-key solar-system-lambda.zip
+                        aws lambda update-function-code \
+                            --function-name solar-system-function \
+                            --s3-bucket solar-system-app-lambda-bucket \
+                            --s3-key solar-system-lambda.zip
                     '''
                     }
                 }    
