@@ -290,6 +290,21 @@ pipeline {
                 }    
             }
         }
+        stage('Lambda - Invoke Function') {
+            when { branch 'main'}
+            steps {
+               withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+                        sh '''
+                            sleep 30s
+                            function_url_data=$(aws lambda get-function-url-config --function-name solar-system-function)
+                            function_url=$(echo $function_url_data | jq -r '.FunctionUrl | sub("/$"; "")')
+                            curl -Is $function_url/live | grep -i "200 OK"
+                        '''
+                    }
+                }    
+            }
+        }
     }
 
     post {
