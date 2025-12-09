@@ -284,7 +284,7 @@ pipeline {
                         aws lambda update-function-code \
                             --function-name solar-system-function \
                             --s3-bucket solar-system-app-lambda-bucket \
-                            --s3-key solar-system-lambda.zip
+                            --s3-key solar-system-lambda-$BUILD_ID.zip
                     '''
                     }
                 }    
