@@ -6,7 +6,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const mongoose = require("mongoose");
 const cors = require('cors')
-// const serverless = require('serverless-http') 
+const serverless = require('serverless-http') 
 
 const PORT = 3000;
 
