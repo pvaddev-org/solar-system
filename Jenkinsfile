@@ -278,7 +278,7 @@ pipeline {
                     sh"""
                         aws lambda update-function-configuration \
                             --function-name solar-system-function \
-                            --environment '{"Variables": "MONGO_URI": "${MONGO_URI}"}}'
+                            --environment '{"Variables": {"MONGO_URI": "${MONGO_URI}"}}'
                     """
                     sh '''
                         aws lambda update-function-code \
