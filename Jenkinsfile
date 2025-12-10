@@ -9,12 +9,14 @@ pipeline {
 
     stages {
         stage('Installing Dependancies') {
+            when { branch 'feature/*' }
             steps {
                 sh 'npm install --no-audit'
             }
         }
 
         stage('Dependancy scanning') {
+            when { branch 'feature/*' }
             parallel {
                 stage('NPM Dependancy Audit ') {
                     steps {
@@ -38,6 +40,7 @@ pipeline {
         }
 
         stage('Unit Testing') {
+            when { branch 'feature/*' }
             options { retry(2) }
             steps {
                 withCredentials([string(credentialsId: 'mongo-uri', variable: 'MONGO_URI')]) {
@@ -50,6 +53,7 @@ pipeline {
         }
 
         // stage('SAST - SonarQube') {
+            //when { branch 'feature/*' }
             // steps {
             //     script {
             //         def scannerHome = tool 'SonarScanner-7'
@@ -69,12 +73,14 @@ pipeline {
         // }
 
         stage('Build Docker Image') {
+            when { branch 'feature/*' }
             steps {
                 sh 'docker build -t pvaddocker/solar-system:$GIT_COMMIT .'
             }
         }
 
         // stage('Trivy Vulnerability Image Scanner') {
+        //       when { branch 'feature/*' }
         //     steps {
         //         sh '''
         //            trivy image pvaddocker/solar-system:$GIT_COMMIT \
@@ -115,6 +121,7 @@ pipeline {
         // }
 
         stage('Push Docker Image') {
+            when { branch 'feature/*' }
             steps {
                 withDockerRegistry(credentialsId: 'dockerhub-creds', url: "") {
                     sh 'docker push pvaddocker/solar-system:$GIT_COMMIT'
