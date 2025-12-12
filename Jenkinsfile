@@ -137,6 +137,9 @@ pipeline {
                     withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                         sh '''
                             aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_URI
+                            aws ecr describe-repositories \
+                                --repository-names pvaddocker/solar-system \
+                                --region us-east-1
                             docker tag pvaddocker/solar-system:$GIT_COMMIT $ECR_URI/pvaddocker/solar-system:$GIT_COMMIT
                             docker push $ECR_URI/pvaddocker/solar-system:$GIT_COMMIT
                         '''
