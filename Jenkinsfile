@@ -4,6 +4,7 @@ pipeline {
     environment {
      CLUSTER_IP = credentials('ClusterIP')
      MONGO_URI = credentials('mongo-uri')
+     ECR_URI = credentials('ECR_URI')
     }
 
 
@@ -120,11 +121,25 @@ pipeline {
         //     }
         // }
 
-        stage('Push Docker Image') {
+        // stage('Push Docker Image') {
+        //     when { branch 'feature/*' }
+        //     steps {
+        //         withDockerRegistry(credentialsId: 'dockerhub-creds', url: "") {
+        //             sh 'docker push pvaddocker/solar-system:$GIT_COMMIT'
+        //         }
+        //     }
+        // }
+
+        stage('Push Docker Image to ECR') {
             when { branch 'feature/*' }
             steps {
-                withDockerRegistry(credentialsId: 'dockerhub-creds', url: "") {
-                    sh 'docker push pvaddocker/solar-system:$GIT_COMMIT'
+               withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+                        sh '''
+                            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_URI
+                            docker push $ECR_URI/pvaddocker/solar-system:$GIT_COMMIT
+                        '''
+                    }
                 }
             }
         }
