@@ -184,8 +184,8 @@ pipeline {
                                 --cluster solar-system-cluster \
                                 --task-definition solar-system-td:1 \
                                 --launch-type FARGATE \
-                                --network-configuration '{"awsvpcConfiguration": {"subnets": [$SUBNET_JSON], "assignPublicIp": "ENABLED"}}' \
-                                --overrides '{"containerOverrides": [{"name": "solar-system-test", "environment": [{"name": "MONGO_URI", "value": "$MONGO_URI"]}]}'
+                                --network-configuration '{"awsvpcConfiguration": {"subnets": ["'$SUBNET_JSON'"], "assignPublicIp": "ENABLED"}}' \
+                                --overrides '{"containerOverrides": [{"name": "solar-system-test", "environment": [{"name": "MONGO_URI", "value": "'"$MONGO_URI"'"]}]}'
                         '''
                     }
                 }    
