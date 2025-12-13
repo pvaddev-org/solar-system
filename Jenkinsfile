@@ -174,7 +174,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
                     withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
-                        sh"""
+                        sh'''
                             VPC_ID=$(aws ec2 describe-vpcs --filters Name=is-default,Values=true --query 'Vpcs[0].VpcId' --output text)
                             SUBNET_LIST=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" --query 'Subnets[].SubnetId' --output text | tr '\t' ',')
                             QUOTED_SUBNETS=$(echo $SUBNET_LIST | sed 's/,/","/g')
@@ -184,9 +184,9 @@ pipeline {
                                 --cluster solar-system-cluster \
                                 --task-definition solar-system-td:1 \
                                 --launch-type FARGATE \
-                                --network-configuration "{\\"awsvpcConfiguration\\": {\\"subnets\\": [$SUBNET_JSON], \\"assignPublicIp\\": \\"ENABLED\\"}}" \
+                                --network-configuration '{"awsvpcConfiguration": {"subnets": [$SUBNET_JSON], "assignPublicIp": "ENABLED"}}' \
                                 --overrides '{"containerOverrides": [{"name": "solar-system-test", "environment": [{"name": "MONGO_URI", "value": "$MONGO_URI"]}]}'
-                        """
+                        '''
                     }
                 }    
             }
