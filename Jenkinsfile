@@ -138,7 +138,8 @@ pipeline {
                         sh '''
                             aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_URI
                             docker tag pvaddocker/solar-system:$GIT_COMMIT $ECR_URI/pvaddocker/solar-system:$GIT_COMMIT
-                            docker push $ECR_URI/pvaddocker/solar-system:$GIT_COMMIT
+                            $IMAGE_URI=$ECR_URI/pvaddocker/solar-system:$GIT_COMMIT
+                            docker push $IMAGE_URI
                         '''
                     }
                 }
@@ -184,7 +185,7 @@ pipeline {
                                 --task-definition solar-system-td:1 \
                                 --launch-type FARGATE \
                                 --network-configuration '{"awsvpcConfiguration": {"subnets": ["'$SUBNET_JSON'"], "assignPublicIp": "ENABLED"}}' \
-                                --overrides '{"containerOverrides": [{"name": "solar_system", "environment": [{"name": "MONGO_URI", "value": "'"$MONGO_URI"'"}]}]}'
+                                --overrides '{"containerOverrides": [{"name": "solar_system", "image": "$IMAGE_URL" "environment": [{"name": "MONGO_URI", "value": "$MONGO_URI"}]}]}'
                         '''
                     }
                 }    
