@@ -145,34 +145,32 @@ pipeline {
             }
         }
 
-        stage('Deploy - AWS EC2') {
-            when {
-                branch 'feature/*'
-            }
-            steps {
-                script {
-                    sshagent(['AWS-dev-deploy-ssh-key']) {
-                        sh'''
-                            ssh -o StrictHostKeyChecking=no ubuntu@204.236.209.74 "
-                                if sudo docker ps -a | grep -q "solar-system"; then
-                                        echo "Stopping container..."
-                                            sudo docker stop "solar-system" && sudo docker rm "solar-system"
-                                        echo "Container stopped and removed."
-                                fi
-                                    sudo docker run --name solar-system \
-                                        -e MONGO_URI=$MONGO_URI \
-                                        -p 3000:3000 -d pvaddocker/solar-system:$GIT_COMMIT
-                            "
-                        '''
-                    }
-                }    
-            }
-        }
+        // stage('Deploy - AWS EC2') {
+        //     when {
+        //         branch 'feature/*'
+        //     }
+        //     steps {
+        //         script {
+        //             sshagent(['AWS-dev-deploy-ssh-key']) {
+        //                 sh'''
+        //                     ssh -o StrictHostKeyChecking=no ubuntu@204.236.209.74 "
+        //                         if sudo docker ps -a | grep -q "solar-system"; then
+        //                                 echo "Stopping container..."
+        //                                     sudo docker stop "solar-system" && sudo docker rm "solar-system"
+        //                                 echo "Container stopped and removed."
+        //                         fi
+        //                             sudo docker run --name solar-system \
+        //                                 -e MONGO_URI=$MONGO_URI \
+        //                                 -p 3000:3000 -d pvaddocker/solar-system:$GIT_COMMIT
+        //                     "
+        //                 '''
+        //             }
+        //         }    
+        //     }
+        // }
 
         stage('Deploy - AWS ECS') {
-            when {
-                branch 'feature/*'
-            }
+            when { branch 'feature/*' }
             steps {
                 withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
                     withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
