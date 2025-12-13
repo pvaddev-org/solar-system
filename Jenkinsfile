@@ -178,8 +178,7 @@ pipeline {
                             CONTAINER_NAME="solar_system"
                             FULL_IMAGE="$ECR_URI/pvaddocker/solar-system:$GIT_COMMIT"
                             TASK_DEF_FAMILY="solar-system-td"
-                            SECURITY_GROUP="ecs-solar-sg2"
-
+                            SECURITY_GROUP=$(aws ec2 describe-security-groups --group-names ecs-solar-sg2 --query 'SecurityGroups[0].VpcId' )
 
                             TD_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEF_FAMILY --query 'taskDefinition.{containerDefinitions:containerDefinitions, family:family, taskRoleArn:taskRoleArn, executionRoleArn:executionRoleArn, networkMode:networkMode, requiresCompatibilities:requiresCompatibilities, cpu:cpu, memory:memory}' --output json)
 
