@@ -178,6 +178,8 @@ pipeline {
                             CONTAINER_NAME="solar_system"
                             FULL_IMAGE="$ECR_URI/pvaddocker/solar-system:$GIT_COMMIT"
                             TASK_DEF_FAMILY="solar-system-td"
+                            SECURITY_GROUP="ecs-solar-sg2"
+
 
                             TD_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEF_FAMILY --query 'taskDefinition.{containerDefinitions:containerDefinitions, family:family, taskRoleArn:taskRoleArn, executionRoleArn:executionRoleArn, networkMode:networkMode, requiresCompatibilities:requiresCompatibilities, cpu:cpu, memory:memory}' --output json)
 
@@ -193,7 +195,7 @@ pipeline {
                                 --cluster solar-system-cluster \
                                 --task-definition $NEW_TD_ARN \
                                 --launch-type FARGATE \
-                                --network-configuration '{"awsvpcConfiguration": {"subnets": ["'$SUBNET_JSON'"], "assignPublicIp": "ENABLED"}}' \
+                                --network-configuration '{"awsvpcConfiguration": {"subnets": ["'$SUBNET_JSON'"], "securityGroups": ["'"$SECURITY_GROUP"'"  ], "assignPublicIp": "ENABLED"}}' \
                                 --overrides '{"containerOverrides": [{"name": "solar_system", "environment": [{"name": "MONGO_URI", "value": "'"$MONGO_URI"'"}]}]}'
                         '''
                     }
