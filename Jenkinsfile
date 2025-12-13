@@ -183,7 +183,7 @@ pipeline {
 
                             NEW_TD_JSON=$(echo $TD_JSON | jq --arg img "$FULL_IMAGE" '.containerDefinitions |= map(if .name == "'$CONTAINER_NAME'" then .image = $img else . end)')
                             
-                            NEW_TD_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TD_JSON" \ --query 'taskDefinition.taskDefinitionArn' --output text)
+                            NEW_TD_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TD_JSON" --query 'taskDefinition.taskDefinitionArn' --output text)
 
                             VPC_ID=$(aws ec2 describe-vpcs --filters Name=is-default,Values=true --query 'Vpcs[0].VpcId' --output text)
                             SUBNET_LIST=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" --query 'Subnets[].SubnetId' --output text | tr '\t' ',')
