@@ -175,16 +175,26 @@ pipeline {
                 withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
                     withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                         sh'''
+                            CONTAINER_NAME="solar_system"
+                            FULL_IMAGE="$ECR_URI/pvaddocker/solar-system:$GIT_COMMIT"
+                            TASK_DEF_FAMILY="solar-system-td"
+
+                            TD_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEF_FAMILY --query 'taskDefinition.{containerDefinitions:containerDefinitions, family:family, taskRoleArn:taskRoleArn, executionRoleArn:executionRoleArn, networkMode:networkMode, requiresCompatibilities:requiresCompatibilities, cpu:cpu, memory:memory}' --output json)
+
+                            NEW_TD_JSON=$(echo $TD_JSON | jq --arg img "$FULL_IMAGE" '.containerDefinitions |= map(if .name == "'$CONTAINER_NAME'" then .image = $img else . end)')
+                            
+                            NEW_TD_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TD_JSON" \ --query 'taskDefinition.taskDefinitionArn' --output text)
+
                             VPC_ID=$(aws ec2 describe-vpcs --filters Name=is-default,Values=true --query 'Vpcs[0].VpcId' --output text)
                             SUBNET_LIST=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" --query 'Subnets[].SubnetId' --output text | tr '\t' ',')
                             SUBNET_JSON=$(echo $SUBNET_LIST | sed 's/,/","/g')
  
                             aws ecs run-task \
                                 --cluster solar-system-cluster \
-                                --task-definition solar-system-td:1 \
+                                --task-definition $NEW_TD_ARN \
                                 --launch-type FARGATE \
                                 --network-configuration '{"awsvpcConfiguration": {"subnets": ["'$SUBNET_JSON'"], "assignPublicIp": "ENABLED"}}' \
-                                --overrides '{"containerOverrides": [{"name": "solar_system", "image": "'"$ECR_URI/pvaddocker/solar-system:$GIT_COMMIT"'", "environment": [{"name": "MONGO_URI", "value": "'"$MONGO_URI"'"}]}]}'
+                                --overrides '{"containerOverrides": [{"name": "solar_system", "environment": [{"name": "MONGO_URI", "value": "'"$MONGO_URI"'"}]}]}'
                         '''
                     }
                 }    
