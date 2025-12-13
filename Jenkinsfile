@@ -194,7 +194,7 @@ pipeline {
                                 --cluster solar-system-cluster \
                                 --task-definition $NEW_TD_ARN \
                                 --launch-type FARGATE \
-                                --network-configuration '{"awsvpcConfiguration": {"subnets": ["'$SUBNET_JSON'"], "securityGroups": ["'$SECURITY_GROUP'"], "assignPublicIp": "ENABLED"}}' \
+                                --network-configuration '{"awsvpcConfiguration": {"subnets": ["'$SUBNET_JSON'"], "securityGroups": ["$SECURITY_GROUP"], "assignPublicIp": "ENABLED"}}' \
                                 --overrides '{"containerOverrides": [{"name": "solar_system", "environment": [{"name": "MONGO_URI", "value": "'"$MONGO_URI"'"}]}]}'
                         '''
                     }
