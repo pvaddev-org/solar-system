@@ -174,19 +174,11 @@ pipeline {
                 branch 'feature/*'
             }
             steps {
-                script {
-                    sshagent(['AWS-dev-deploy-ssh-key']) {
+                withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                         sh'''
-                            VPC_ID=$(aws ec2 describe-vpcs \
-                                --filters Name=is-default,Values=true \
-                                --query 'Vpcs[0].VpcId' \                  
-                                --output text)
-
-                            SUBNET_LIST=$(aws ec2 describe-subnets \
-                                --filters "Name=vpc-id,Values=$VPC_ID" \
-                                --query 'Subnets[].SubnetId' \
-                                --output text | tr '\t' ',')
-
+                            VPC_ID=$(aws ec2 describe-vpcs --filters Name=is-default,Values=true --query 'Vpcs[0].VpcId' --output text)
+                            SUBNET_LIST=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" --query 'Subnets[].SubnetId' --output text | tr '\t' ',')
                             SUBNET_JSON=$(echo $SUBNET_LIST | sed 's/\([^,]*\)/"\1"/g' | sed 's/ /,"/g')
  
                             aws ecs run-task \
