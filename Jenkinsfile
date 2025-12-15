@@ -200,10 +200,9 @@ pipeline {
 
                             //WAIT & GET IP
                             TASK_ARN=$(aws ecs list-tasks --cluster $CLUSTER_NAME --query 'taskArns[0]' --output text)
-                            echo $TASK_ARN
 
                             aws ecs wait tasks-running --cluster $CLUSTER_NAME --tasks $TASK_ARN
-
+                            aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $TASK_ARN
                             
                         '''
                     }
