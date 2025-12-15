@@ -204,9 +204,7 @@ pipeline {
 
                             aws ecs wait tasks-running --cluster $CLUSTER_NAME --tasks $TASK_ARN
 
-                            // PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids ${taskIp} \
-                            //     --query 'NetworkInterfaces[0].Association.PublicIp' \
-                            //     --output text)
+                            
                         '''
                     }
                 }    
