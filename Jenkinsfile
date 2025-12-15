@@ -169,7 +169,7 @@ pipeline {
         //     }
         // }
 
-        stage('Deploy - AWS ECS') {
+        stage('Deploy - AWS ECS + Intefration tests') {
             when { branch 'feature/*' }
             steps {
                 withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
@@ -207,25 +207,30 @@ pipeline {
                             # RUN INTEGRATION TEST
                             chmod +x ./integration-testing-ecs.sh
                             ./integration-testing-ecs.sh $PUBLIC_IP
+
+                            # CLEANUP - STOPPING ECS TASK
+                            aws ecs stop-task --cluster $CLUSTER_NAME --task $TASK_ARN || true
+                            sh "aws ecs wait tasks-stopped --cluster $CLUSTER_NAME --tasks $TASK_ARN || true"
+                            echo "Task cleanup complete."
                         '''
                     }
                 }    
             }
         }
 
-        stage('Integration Testing - AWS EC2') {
-            when { branch 'feature/*'}
+        // stage('Integration Testing - AWS EC2') {
+        //     when { branch 'feature/*'}
             
-            steps {
-                withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
-                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
-                        sh '''
-                            bash integration-testing.sh
-                        '''
-                    }
-                }
-            }
-        }
+        //     steps {
+        //         withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+        //             withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+        //                 sh '''
+        //                     bash integration-testing.sh
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('K8S Update Image Tag') {
             when { branch 'PR*'}
