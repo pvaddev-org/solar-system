@@ -199,7 +199,10 @@ pipeline {
                                 --overrides '{"containerOverrides": [{"name": "solar_system", "environment": [{"name": "MONGO_URI", "value": "'"$MONGO_URI"'"}]}]}'
 
                             //WAIT & GET IP
-                            aws ecs wait tasks-running --cluster $CLUSTER_NAME --tasks $NEW_TD_ARN
+                            TASK_ARN=$(aws ecs list-tasks --cluster $CLUSTER_NAME --query 'taskArns[0]' --output text)
+                            echo $TASK_ARN
+
+                            aws ecs wait tasks-running --cluster $CLUSTER_NAME --tasks $TASK_ARN
 
                             // PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids ${taskIp} \
                             //     --query 'NetworkInterfaces[0].Association.PublicIp' \
