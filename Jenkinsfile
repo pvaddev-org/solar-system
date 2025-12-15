@@ -169,7 +169,7 @@ pipeline {
         //     }
         // }
 
-        stage('Deploy - AWS ECS + Intefration tests') {
+        stage('Deploy - ECS Fargate Integration Test') {
             when { branch 'feature/*' }
             steps {
                 withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
@@ -210,7 +210,7 @@ pipeline {
 
                             # CLEANUP - STOPPING ECS TASK
                             aws ecs stop-task --cluster $CLUSTER_NAME --task $TASK_ARN || true
-                            sh "aws ecs wait tasks-stopped --cluster $CLUSTER_NAME --tasks $TASK_ARN || true"
+                            aws ecs wait tasks-stopped --cluster $CLUSTER_NAME --tasks $TASK_ARN || true
                             echo "Task cleanup complete."
                         '''
                     }
