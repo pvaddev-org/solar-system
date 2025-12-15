@@ -214,10 +214,6 @@ pipeline {
                             aws ecs stop-task --cluster $CLUSTER_NAME --task $TASK_ARN || true
                             aws ecs wait tasks-stopped --cluster $CLUSTER_NAME --tasks $TASK_ARN || true
                             echo "Task cleanup complete."
-
-                            #DELETE UNTAGGED IMAGES (SAVE SPACE IN ECR)
-                            IMAGES_TO_DELETE=$(aws ecr list-images --repository-name $ECR_REPO_NAME --filter tagStatus=UNTAGGED --query 'imageIds[].imageDigest' --output text)
-                            aws ecr batch-delete-image --repository-name your-repo-name --image-ids imageTag=IMAGES_TO_DELETE
                         '''
                     }
                 }    
