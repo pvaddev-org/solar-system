@@ -175,6 +175,7 @@ pipeline {
                 withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
                     withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                         sh'''
+                            CLUSTER_NAME="solar-system-cluster"
                             CONTAINER_NAME="solar_system"
                             FULL_IMAGE="$ECR_URI/pvaddocker/solar-system:$GIT_COMMIT"
                             TASK_DEF_FAMILY="solar-system-td"
@@ -191,11 +192,18 @@ pipeline {
                             SUBNET_JSON=$(echo $SUBNET_LIST | sed 's/,/","/g')
  
                             aws ecs run-task \
-                                --cluster solar-system-cluster \
+                                --cluster $CLUSTER_NAME \
                                 --task-definition $NEW_TD_ARN \
                                 --launch-type FARGATE \
                                 --network-configuration '{"awsvpcConfiguration": {"subnets": ["'$SUBNET_JSON'"], "securityGroups": ["'"$SECURITY_GROUP"'"], "assignPublicIp": "ENABLED"}}' \
                                 --overrides '{"containerOverrides": [{"name": "solar_system", "environment": [{"name": "MONGO_URI", "value": "'"$MONGO_URI"'"}]}]}'
+
+                            //WAIT & GET IP
+                            aws ecs wait tasks-running --cluster $CLUSTER_NAME --tasks $NEW_TD_ARN
+
+                            // PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids ${taskIp} \
+                            //     --query 'NetworkInterfaces[0].Association.PublicIp' \
+                            //     --output text)
                         '''
                     }
                 }    
