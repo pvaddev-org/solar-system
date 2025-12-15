@@ -205,7 +205,7 @@ pipeline {
                             PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $NETWORK_INTERFACE_ID --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
                             
                             # RUN INTEGRATION TEST
-                            ./run_integration-tests-ecs.sh $PUBLIC_IP
+                            ./run_integration-testing-ecs.sh $PUBLIC_IP
                         '''
                     }
                 }    
