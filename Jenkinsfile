@@ -198,13 +198,13 @@ pipeline {
                                 --network-configuration '{"awsvpcConfiguration": {"subnets": ["'$SUBNET_JSON'"], "securityGroups": ["'"$SECURITY_GROUP"'"], "assignPublicIp": "ENABLED"}}' \
                                 --overrides '{"containerOverrides": [{"name": "solar_system", "environment": [{"name": "MONGO_URI", "value": "'"$MONGO_URI"'"}]}]}'
 
-                            //WAIT & GET IP
+                            # WAIT & GET IP
                             TASK_ARN=$(aws ecs list-tasks --cluster $CLUSTER_NAME --query 'taskArns[0]' --output text)
                             aws ecs wait tasks-running --cluster $CLUSTER_NAME --tasks $TASK_ARN
                             NETWORK_INTERFACE_ID=$(aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $TASK_ARN --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' --output text)
                             PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $NETWORK_INTERFACE_ID --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
                             
-                            //RUN INTEGRATION TEST
+                            # RUN INTEGRATION TEST
                             ./run_integration-tests-ecs.sh $PUBLIC_IP
                         '''
                     }
