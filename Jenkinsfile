@@ -202,8 +202,8 @@ pipeline {
                             TASK_ARN=$(aws ecs list-tasks --cluster $CLUSTER_NAME --query 'taskArns[0]' --output text)
 
                             aws ecs wait tasks-running --cluster $CLUSTER_NAME --tasks $TASK_ARN
-                            aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $TASK_ARN
-                            
+                            NETWORK_INTERFACE_ID=$(aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $TASK_ARN --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' --output text)
+                            echo "Captured Network Interface ID: $NETWORK_INTERFACE_ID"
                         '''
                     }
                 }    
