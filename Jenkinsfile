@@ -175,6 +175,7 @@ pipeline {
                 withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
                     withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                         sh'''
+                            # SET ENV VARIABLES
                             CLUSTER_NAME="solar-system-cluster"
                             CONTAINER_NAME="solar_system"
                             FULL_IMAGE="$ECR_URI/pvaddocker/solar-system:$GIT_COMMIT"
@@ -190,7 +191,8 @@ pipeline {
                             VPC_ID=$(aws ec2 describe-vpcs --filters Name=is-default,Values=true --query 'Vpcs[0].VpcId' --output text)
                             SUBNET_LIST=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" --query 'Subnets[].SubnetId' --output text | tr '\t' ',')
                             SUBNET_JSON=$(echo $SUBNET_LIST | sed 's/,/","/g')
- 
+
+                            # RUN ECS FARGATE TASK
                             aws ecs run-task \
                                 --cluster $CLUSTER_NAME \
                                 --task-definition $NEW_TD_ARN \
@@ -212,6 +214,10 @@ pipeline {
                             aws ecs stop-task --cluster $CLUSTER_NAME --task $TASK_ARN || true
                             aws ecs wait tasks-stopped --cluster $CLUSTER_NAME --tasks $TASK_ARN || true
                             echo "Task cleanup complete."
+
+                            #DELETE UNTAGGED IMAGES (SAVE SPACE IN ECR)
+                            IMAGES_TO_DELETE=$(aws ecr list-images --repository-name $ECR_REPO_NAME --filter tagStatus=UNTAGGED --query 'imageIds[].imageDigest' --output text)
+                            aws ecr batch-delete-image --repository-name your-repo-name --image-ids imageTag=IMAGES_TO_DELETE
                         '''
                     }
                 }    
