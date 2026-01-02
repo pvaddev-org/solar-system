@@ -243,11 +243,11 @@ pipeline {
                     sh 'git clone -b main https://github.com/pvaddev/solar-system-gitops-repo.git'
 
                     dir("solar-system-gitops-repo") {
-                        sh """
+                        sh '''
                             git checkout main
                             git checkout -b feature-$BUILD_ID
 
-                            ed -i "s#newTag:.*#newTag: $GIT_COMMIT#g" base/kustomization.yaml
+                            sed -i "s#newTag:.*#newTag: $GIT_COMMIT#g" base/kustomization.yaml
 
                             git config user.email "jenkins@user.com"
                             git config user.name "jenkins-ci-bot"
@@ -257,7 +257,7 @@ pipeline {
                             git add base/kustomization.yaml
                             git commit -m "Automated update: Image tag promoted to $GIT_COMMIT"
                             git push -u origin feature-$BUILD_ID
-                        """
+                        '''
                     }
                 }
             }
