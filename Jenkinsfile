@@ -242,20 +242,20 @@ pipeline {
 
                     sh 'git clone -b main https://github.com/pvaddev/solar-system-gitops-repo.git'
 
-                    dir("solar-system-gitops-repo/kubernetes") {
+                    dir("solar-system-gitops-repo") {
                         sh """
                             git checkout main
                             git checkout -b feature-$BUILD_ID
 
-                            sed -i "s#pvaddocker/solar-system:.*#pvaddocker/solar-system:$GIT_COMMIT#g" deployment.yml
+                            ed -i "s#newTag:.*#newTag: $GIT_COMMIT#g" base/kustomization.yaml
 
                             git config user.email "jenkins@user.com"
                             git config user.name "jenkins-ci-bot"
 
                             git remote set-url origin https://${GIT_USER}:${GIT_TOKEN}@github.com/pvaddev/solar-system-gitops-repo.git
 
-                            git add deployment.yml
-                            git commit -m "Update image tag to $GIT_COMMIT"
+                            git add base/kustomization.yaml
+                            git commit -m "Automated update: Image tag promoted to $GIT_COMMIT"
                             git push -u origin feature-$BUILD_ID
                         """
                     }
