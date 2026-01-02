@@ -4,6 +4,7 @@ pipeline {
     environment {
      CLUSTER_IP = credentials('ClusterIP')
      MONGO_URI = credentials('mongo-uri')
+     ECR_URI = credentials('ECR_URI')
     }
 
 
@@ -120,52 +121,118 @@ pipeline {
         //     }
         // }
 
-        stage('Push Docker Image') {
+        // stage('Push Docker Image') {
+        //     when { branch 'feature/*' }
+        //     steps {
+        //         withDockerRegistry(credentialsId: 'dockerhub-creds', url: "") {
+        //             sh 'docker push pvaddocker/solar-system:$GIT_COMMIT'
+        //         }
+        //     }
+        // }
+
+        stage('Push Docker Image to ECR') {
             when { branch 'feature/*' }
             steps {
-                withDockerRegistry(credentialsId: 'dockerhub-creds', url: "") {
-                    sh 'docker push pvaddocker/solar-system:$GIT_COMMIT'
+               withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+                        sh '''
+                            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_URI
+                            docker tag pvaddocker/solar-system:$GIT_COMMIT $ECR_URI/pvaddocker/solar-system:$GIT_COMMIT
+                            docker push $ECR_URI/pvaddocker/solar-system:$GIT_COMMIT
+                        '''
+                    }
                 }
             }
         }
 
-        stage('Deploy - AWS EC2') {
-            when {
-                branch 'feature/*'
-            }
+        // stage('Deploy - AWS EC2') {
+        //     when {
+        //         branch 'feature/*'
+        //     }
+        //     steps {
+        //         script {
+        //             sshagent(['AWS-dev-deploy-ssh-key']) {
+        //                 sh'''
+        //                     ssh -o StrictHostKeyChecking=no ubuntu@204.236.209.74 "
+        //                         if sudo docker ps -a | grep -q "solar-system"; then
+        //                                 echo "Stopping container..."
+        //                                     sudo docker stop "solar-system" && sudo docker rm "solar-system"
+        //                                 echo "Container stopped and removed."
+        //                         fi
+        //                             sudo docker run --name solar-system \
+        //                                 -e MONGO_URI=$MONGO_URI \
+        //                                 -p 3000:3000 -d pvaddocker/solar-system:$GIT_COMMIT
+        //                     "
+        //                 '''
+        //             }
+        //         }    
+        //     }
+        // }
+
+        stage('Deploy - ECS Fargate Integration Test') {
+            when { branch 'feature/*' }
             steps {
-                script {
-                    sshagent(['AWS-dev-deploy-ssh-key']) {
+                withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
                         sh'''
-                            ssh -o StrictHostKeyChecking=no ubuntu@204.236.209.74 "
-                                if sudo docker ps -a | grep -q "solar-system"; then
-                                        echo "Stopping container..."
-                                            sudo docker stop "solar-system" && sudo docker rm "solar-system"
-                                        echo "Container stopped and removed."
-                                fi
-                                    sudo docker run --name solar-system \
-                                        -e MONGO_URI=$MONGO_URI \
-                                        -p 3000:3000 -d pvaddocker/solar-system:$GIT_COMMIT
-                            "
+                            # SET ENV VARIABLES
+                            CLUSTER_NAME="solar-system-cluster"
+                            CONTAINER_NAME="solar_system"
+                            FULL_IMAGE="$ECR_URI/pvaddocker/solar-system:$GIT_COMMIT"
+                            TASK_DEF_FAMILY="solar-system-td"
+                            SECURITY_GROUP=$(aws ec2 describe-security-groups --group-names ecs-solar-sg2 --query 'SecurityGroups[0].GroupId' --output text)
+
+                            TD_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEF_FAMILY --query 'taskDefinition.{containerDefinitions:containerDefinitions, family:family, taskRoleArn:taskRoleArn, executionRoleArn:executionRoleArn, networkMode:networkMode, requiresCompatibilities:requiresCompatibilities, cpu:cpu, memory:memory}' --output json)
+
+                            NEW_TD_JSON=$(echo $TD_JSON | jq --arg img "$FULL_IMAGE" '.containerDefinitions |= map(if .name == "'$CONTAINER_NAME'" then .image = $img else . end)')
+                            
+                            NEW_TD_ARN=$(aws ecs register-task-definition --cli-input-json "$NEW_TD_JSON" --query 'taskDefinition.taskDefinitionArn' --output text)
+
+                            VPC_ID=$(aws ec2 describe-vpcs --filters Name=is-default,Values=true --query 'Vpcs[0].VpcId' --output text)
+                            SUBNET_LIST=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" --query 'Subnets[].SubnetId' --output text | tr '\t' ',')
+                            SUBNET_JSON=$(echo $SUBNET_LIST | sed 's/,/","/g')
+
+                            # RUN ECS FARGATE TASK
+                            aws ecs run-task \
+                                --cluster $CLUSTER_NAME \
+                                --task-definition $NEW_TD_ARN \
+                                --launch-type FARGATE \
+                                --network-configuration '{"awsvpcConfiguration": {"subnets": ["'$SUBNET_JSON'"], "securityGroups": ["'"$SECURITY_GROUP"'"], "assignPublicIp": "ENABLED"}}' \
+                                --overrides '{"containerOverrides": [{"name": "solar_system", "environment": [{"name": "MONGO_URI", "value": "'"$MONGO_URI"'"}]}]}'
+
+                            # WAIT & GET IP
+                            TASK_ARN=$(aws ecs list-tasks --cluster $CLUSTER_NAME --query 'taskArns[0]' --output text)
+                            aws ecs wait tasks-running --cluster $CLUSTER_NAME --tasks $TASK_ARN
+                            NETWORK_INTERFACE_ID=$(aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $TASK_ARN --query 'tasks[0].attachments[0].details[?name==`networkInterfaceId`].value' --output text)
+                            PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $NETWORK_INTERFACE_ID --query 'NetworkInterfaces[0].Association.PublicIp' --output text)
+                            
+                            # RUN INTEGRATION TEST
+                            chmod +x ./integration-testing-ecs.sh
+                            ./integration-testing-ecs.sh $PUBLIC_IP
+
+                            # CLEANUP - STOPPING ECS TASK
+                            aws ecs stop-task --cluster $CLUSTER_NAME --task $TASK_ARN || true
+                            aws ecs wait tasks-stopped --cluster $CLUSTER_NAME --tasks $TASK_ARN || true
+                            echo "Task cleanup complete."
                         '''
                     }
                 }    
             }
         }
 
-        stage('Integration Testing - AWS EC2') {
-            when { branch 'feature/*'}
+        // stage('Integration Testing - AWS EC2') {
+        //     when { branch 'feature/*'}
             
-            steps {
-                withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
-                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
-                        sh '''
-                            bash integration-testing.sh
-                        '''
-                    }
-                }
-            }
-        }
+        //     steps {
+        //         withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+        //             withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+        //                 sh '''
+        //                     bash integration-testing.sh
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('K8S Update Image Tag') {
             when { branch 'PR*'}
@@ -175,22 +242,22 @@ pipeline {
 
                     sh 'git clone -b main https://github.com/pvaddev/solar-system-gitops-repo.git'
 
-                    dir("solar-system-gitops-repo/kubernetes") {
-                        sh """
+                    dir("solar-system-gitops-repo") {
+                        sh '''
                             git checkout main
                             git checkout -b feature-$BUILD_ID
 
-                            sed -i "s#pvaddocker/solar-system:.*#pvaddocker/solar-system:$GIT_COMMIT#g" deployment.yml
+                            sed -i "s#newTag:.*#newTag: $GIT_COMMIT#g" base/kustomization.yml
 
                             git config user.email "jenkins@user.com"
                             git config user.name "jenkins-ci-bot"
 
                             git remote set-url origin https://${GIT_USER}:${GIT_TOKEN}@github.com/pvaddev/solar-system-gitops-repo.git
 
-                            git add deployment.yml
-                            git commit -m "Update image tag to $GIT_COMMIT"
-                            git push -u origin feature-$BUILD_ID
-                        """
+                            git add base/kustomization.yml
+                            git commit -m "Automated update: Image tag promoted to $GIT_COMMIT"
+                            git push -u origin feature-$BUILD_ID --force
+                        '''
                     }
                 }
             }
