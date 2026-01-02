@@ -8,4 +8,4 @@
 10099	IGNORE	http://$CLUSTER_IP:30000/api-docs/
 90003	IGNORE	http://$CLUSTER_IP:30000/api-docs/
 90004	IGNORE	http://$CLUSTER_IP:30000/api-docs/
-10116   IGNORE  (ZAP is Out of Date)
+10116	IGNORE	(ZAP is Out of Date)
