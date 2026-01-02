@@ -247,7 +247,7 @@ pipeline {
                             git checkout main
                             git checkout -b feature-$BUILD_ID
 
-                            sed -i "s#newTag:.*#newTag: $GIT_COMMIT#g" base/kustomization.yaml
+                            sed -i "s#newTag:.*#newTag: $GIT_COMMIT#g" base/kustomization.yml
 
                             git config user.email "jenkins@user.com"
                             git config user.name "jenkins-ci-bot"
