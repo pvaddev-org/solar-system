@@ -256,7 +256,7 @@ pipeline {
 
                             git add base/kustomization.yml
                             git commit -m "Automated update: Image tag promoted to $GIT_COMMIT"
-                            git push -u origin feature-$BUILD_ID
+                            git push -u origin feature-$BUILD_ID --force
                         '''
                     }
                 }
