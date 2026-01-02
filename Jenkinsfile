@@ -254,7 +254,7 @@ pipeline {
 
                             git remote set-url origin https://${GIT_USER}:${GIT_TOKEN}@github.com/pvaddev/solar-system-gitops-repo.git
 
-                            git add base/kustomization.yaml
+                            git add base/kustomization.yml
                             git commit -m "Automated update: Image tag promoted to $GIT_COMMIT"
                             git push -u origin feature-$BUILD_ID
                         '''
