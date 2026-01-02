@@ -285,7 +285,7 @@ pipeline {
             }
         }
 
-        stage('App Deployed?') {//
+        stage('App Deployed?') {
             when { branch 'PR*'}
             steps {
                 timeout(time: 1, unit: 'DAYS') {
