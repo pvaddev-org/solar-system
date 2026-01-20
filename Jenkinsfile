@@ -308,23 +308,23 @@ pipeline {
                 '''
             }
         }
-        stage('Upload report - AWS S3') {
-            when { branch 'PR*'}
+        // stage('Upload report - AWS S3') {
+        //     when { branch 'PR*'}
             
-            steps {
-                withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
-                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
-                        sh '''
-                            ls -ltr
-                            mkdir reports-$BUILD_ID/
-                            cp zap*.* reports-$BUILD_ID/
-                            ls -ltr reports-$BUILD_ID/
-                        '''
-                        s3Upload(file:"reports-$BUILD_ID", bucket:'jenkins-reporting-bucket', path:"jenkins-$BUILD_ID/")
-                    }    
-                }           
-            }
-        }
+        //     steps {
+        //         withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+        //             withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+        //                 sh '''
+        //                     ls -ltr
+        //                     mkdir reports-$BUILD_ID/
+        //                     cp zap*.* reports-$BUILD_ID/
+        //                     ls -ltr reports-$BUILD_ID/
+        //                 '''
+        //                 s3Upload(file:"reports-$BUILD_ID", bucket:'jenkins-reporting-bucket', path:"jenkins-$BUILD_ID/")
+        //             }    
+        //         }           
+        //     }
+        // }
 
         stage('Deploy to Prod') {
             when { branch 'main'}
@@ -335,50 +335,50 @@ pipeline {
             }
         }
 
-        stage('Lambda - S3 Upload & Deploy') {
-            when { branch 'main'}
-            steps {
-               withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
-                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
-                    sh '''
-                        sed -i "/^module\\.exports = app;/,/^}/ s/^/\\/\\//" app.js
-                        sed -i "s|^//module.exports.handler|module.exports.handler|" app.js
-                    '''
-                    sh '''
-                       zip -qr solar-system-lambda-$BUILD_ID.zip  app* package* index.html node*
-                       ls -ltr solar-system-lambda-$BUILD_ID.zip
-                    '''
-                    s3Upload(file:"solar-system-lambda-${BUILD_ID}.zip", bucket:'solar-system-app-lambda-bucket')
-                    sh"""
-                        aws lambda update-function-configuration \
-                            --function-name solar-system-function \
-                            --environment '{"Variables": {"MONGO_URI": "${MONGO_URI}"}}'
-                    """
-                    sh '''
-                        aws lambda update-function-code \
-                            --function-name solar-system-function \
-                            --s3-bucket solar-system-app-lambda-bucket \
-                            --s3-key solar-system-lambda-$BUILD_ID.zip
-                    '''
-                    }
-                }    
-            }
-        }
-        stage('Lambda - Invoke Function') {
-            when { branch 'main'}
-            steps {
-               withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
-                    withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
-                        sh '''
-                            sleep 30s
-                            function_url_data=$(aws lambda get-function-url-config --function-name solar-system-function)
-                            function_url=$(echo $function_url_data | jq -r '.FunctionUrl | sub("/$"; "")')
-                            curl -Is $function_url/live | grep -i "200 OK"
-                        '''
-                    }
-                }    
-            }
-        }
+        // stage('Lambda - S3 Upload & Deploy') {
+        //     when { branch 'main'}
+        //     steps {
+        //        withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+        //             withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+        //             sh '''
+        //                 sed -i "/^module\\.exports = app;/,/^}/ s/^/\\/\\//" app.js
+        //                 sed -i "s|^//module.exports.handler|module.exports.handler|" app.js
+        //             '''
+        //             sh '''
+        //                zip -qr solar-system-lambda-$BUILD_ID.zip  app* package* index.html node*
+        //                ls -ltr solar-system-lambda-$BUILD_ID.zip
+        //             '''
+        //             s3Upload(file:"solar-system-lambda-${BUILD_ID}.zip", bucket:'solar-system-app-lambda-bucket')
+        //             sh"""
+        //                 aws lambda update-function-configuration \
+        //                     --function-name solar-system-function \
+        //                     --environment '{"Variables": {"MONGO_URI": "${MONGO_URI}"}}'
+        //             """
+        //             sh '''
+        //                 aws lambda update-function-code \
+        //                     --function-name solar-system-function \
+        //                     --s3-bucket solar-system-app-lambda-bucket \
+        //                     --s3-key solar-system-lambda-$BUILD_ID.zip
+        //             '''
+        //             }
+        //         }    
+        //     }
+        // }
+        // stage('Lambda - Invoke Function') {
+        //     when { branch 'main'}
+        //     steps {
+        //        withCredentials([string(credentialsId: 'jenkins-role-arn', variable: 'ROLE_ARN')]) {
+        //             withAWS(credentials: 'aws-creds', region: 'us-east-1', role: ROLE_ARN, roleSessionName: 'jenkins') {
+        //                 sh '''
+        //                     sleep 30s
+        //                     function_url_data=$(aws lambda get-function-url-config --function-name solar-system-function)
+        //                     function_url=$(echo $function_url_data | jq -r '.FunctionUrl | sub("/$"; "")')
+        //                     curl -Is $function_url/live | grep -i "200 OK"
+        //                 '''
+        //             }
+        //         }    
+        //     }
+        // }
     }
 
     post {
