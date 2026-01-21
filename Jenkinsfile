@@ -53,7 +53,7 @@ pipeline {
             }
         }
 
-        // stage('SAST - SonarQube') {
+        //// stage('SAST - SonarQube') {
             //when { branch 'feature/*' }
             // steps {
             //     script {
