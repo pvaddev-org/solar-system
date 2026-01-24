@@ -53,7 +53,7 @@ pipeline {
             }
         }
 
-        // stage('SAST - SonarQube') {
+        //// stage('SAST - SonarQube') {
             //when { branch 'feature/*' }
             // steps {
             //     script {
@@ -308,7 +308,7 @@ pipeline {
                 '''
             }
         }
-        // stage('Upload report - AWS S3') {
+        //// stage('Upload report - AWS S3') {
         //     when { branch 'PR*'}
             
         //     steps {
