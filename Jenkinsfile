@@ -220,7 +220,7 @@ pipeline {
             }
         }
 
-        // stage('Integration Testing - AWS EC2') {
+        //// stage('Integration Testing - AWS EC2') {
         //     when { branch 'feature/*'}
             
         //     steps {
