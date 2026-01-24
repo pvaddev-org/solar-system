@@ -220,7 +220,7 @@ pipeline {
             }
         }
 
-        // stage('Integration Testing - AWS EC2') {
+        //// stage('Integration Testing - AWS EC2') {
         //     when { branch 'feature/*'}
             
         //     steps {
@@ -308,7 +308,7 @@ pipeline {
                 '''
             }
         }
-        //// stage('Upload report - AWS S3') {
+        // stage('Upload report - AWS S3') {
         //     when { branch 'PR*'}
             
         //     steps {
