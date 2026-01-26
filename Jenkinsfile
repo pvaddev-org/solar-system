@@ -34,7 +34,8 @@ pipeline {
                             --out \'./\' 
                             --format \'ALL\' 
                             --disableYarnAudit \
-                            --prettyPrint''', odcInstallation: 'OWASP-DepCheck-12'
+                            --prettyPrint
+                        ''', odcInstallation: 'OWASP-DepCheck-12'
                     }
                 }
             }
